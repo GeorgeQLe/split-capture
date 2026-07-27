@@ -1,0 +1,51 @@
+{
+  "schema_version": 1,
+  "completed": false,
+  "stop_reason": "initialization_error",
+  "video": {
+    "codec": "h264",
+    "fps_numerator": 30,
+    "fps_denominator": 1,
+    "desktop": {
+      "width": 2560,
+      "height": 1440,
+      "filename": "desktop.mp4"
+    },
+    "camera": {
+      "width": 1920,
+      "height": 1080,
+      "filename": "camera.mp4"
+    }
+  },
+  "audio": {
+    "codec": "aac",
+    "sample_rate": 48000,
+    "microphone_route": "both",
+    "desktop_audio": true,
+    "desktop_tracks": [
+      {
+        "track": 1,
+        "name": "Desktop Playback Mix"
+      },
+      {
+        "track": 2,
+        "name": "Microphone Isolated"
+      },
+      {
+        "track": 3,
+        "name": "System Audio Isolated"
+      }
+    ],
+    "camera_tracks": [
+      {
+        "track": 1,
+        "name": "Camera Microphone"
+      }
+    ]
+  },
+  "dropped_frames": {
+    "desktop": 0,
+    "camera": 0
+  },
+  "output_errors": "Camera: injected start failure."
+}

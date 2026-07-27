@@ -1,0 +1,41 @@
+name: Dual Capture Windows Qualification
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  windows-x64:
+    name: Windows x64 warnings-as-errors and tests
+    runs-on: windows-2025-vs2026
+    defaults:
+      run:
+        shell: pwsh
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          submodules: recursive
+          fetch-depth: 0
+
+      - name: Configure, build, and test Dual Capture
+        run: |
+          .github/scripts/Build-Windows.ps1 `
+            -Target x64 `
+            -Configuration Debug `
+            -DualCaptureQualification
+
+      - name: Publish qualification summary
+        if: always()
+        run: |
+          @"
+          ## Dual Capture Windows x64
+
+          - Preset: ``windows-ci-x64``
+          - Configuration: ``Debug``
+          - Warnings as errors: enabled
+          - Targets: ``obs-studio``, ``dual-capture-logic-test``
+          - Tests: ``ctest -R '^dual-capture-'``
+          - Runtime capture: out of scope
+          "@ >> $env:GITHUB_STEP_SUMMARY
