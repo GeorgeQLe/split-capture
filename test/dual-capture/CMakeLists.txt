@@ -18,4 +18,13 @@ if(JQ_EXECUTABLE AND FFPROBE_EXECUTABLE)
   )
 endif()
 
+if(JQ_EXECUTABLE)
+  add_test(
+    NAME dual-capture-qualification-finalize
+    COMMAND
+      "${CMAKE_CURRENT_SOURCE_DIR}/qualification-finalize-test.sh"
+      "${CMAKE_CURRENT_SOURCE_DIR}/qualification-runner.sh"
+  )
+endif()
+
 set_target_properties(dual-capture-logic-test PROPERTIES FOLDER "Tests and Examples")

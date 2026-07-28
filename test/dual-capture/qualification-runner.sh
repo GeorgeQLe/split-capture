@@ -5,6 +5,11 @@ set -o pipefail
 
 script_directory="$(cd "$(dirname "$0")" && pwd)"
 validator="$script_directory/validate-session.sh"
+repository_root="$(cd "$script_directory/../.." && pwd)"
+macos_signing_helper="$repository_root/build-aux/split-obs-macos-dev.sh"
+if [[ ! -x "$macos_signing_helper" && -x "$script_directory/split-obs-macos-dev.sh" ]]; then
+  macos_signing_helper="$script_directory/split-obs-macos-dev.sh"
+fi
 
 usage() {
   cat <<'EOF'
@@ -12,10 +17,13 @@ usage: qualification-runner.sh COMMAND [OPTIONS]
 
 Commands:
   init --app APP --output-root DIR --run-root DIR
+  handoff --user USER --app APP --output-root DIR --run-root DIR
   launch [--failpoint NAME]
   capture --case NAME [--min-seconds N --max-seconds N]
   monitor --pid PID [--minutes 30 --interval 60]
   kill-capture --pid PID [--after 30]
+  manual-check --check ID --result pass|fail|skip --note TEXT [--url URL]
+  finalize
   validate
   report
 
@@ -102,24 +110,66 @@ verify_recorded_pid() {
     die "PID $requested_pid is not the exact recorded OBS PID $recorded_pid"
 }
 
+canonical_new_shared_path() {
+  local candidate="$1"
+  local label="$2"
+  local parent base canonical_parent owner mode_text mode
+  [[ "$candidate" == /* && "$candidate" != */ ]] ||
+    die "$label must be an absolute path without a trailing slash"
+  parent="$(dirname "$candidate")"
+  base="$(basename "$candidate")"
+  [[ "$base" != . && "$base" != .. && -d "$parent" ]] ||
+    die "$label must have an existing parent directory"
+  canonical_parent="$(cd -P "$parent" && pwd)" ||
+    die "could not resolve the parent directory for $label"
+  [[ "$canonical_parent" == /Users/Shared/* ]] ||
+    die "$label must be below an administrator-owned staging directory in /Users/Shared"
+
+  owner="$(stat -f %Su "$canonical_parent")" ||
+    die "could not inspect the parent directory for $label"
+  [[ "$owner" == "$(id -un)" ]] ||
+    die "$label parent must be owned by the signing administrator"
+  mode_text="$(stat -f %OLp "$canonical_parent")" ||
+    die "could not inspect permissions for the parent directory of $label"
+  mode=$((8#$mode_text))
+  (( (mode & 0022) == 0 )) ||
+    die "$label parent must not be group- or world-writable"
+
+  printf '%s/%s\n' "$canonical_parent" "$base"
+}
+
 command_init() {
   local app=''
+  local app_bundle=''
   local output=''
   local root=''
+  local write_marker=1
   while (( $# > 0 )); do
     case "$1" in
       --app) app="${2:-}"; shift 2 ;;
       --output-root) output="${2:-}"; shift 2 ;;
       --run-root) root="${2:-}"; shift 2 ;;
+      --no-marker) write_marker=0; shift ;;
       *) die "unknown or incomplete init argument '$1'" ;;
     esac
   done
   [[ -n "$app" && -n "$output" && -n "$root" ]] || die "init requires --app, --output-root, and --run-root"
   require_tool jq
   if [[ -d "$app" && "$app" == *.app ]]; then
+    app_bundle="$app"
     app="$app/Contents/MacOS/OBS"
+  elif [[ "$app" == */Contents/MacOS/* ]]; then
+    app_bundle="${app%/Contents/MacOS/*}"
   fi
   [[ -x "$app" ]] || die "OBS executable is not executable: $app"
+  if [[ "$(uname -s)" == Darwin ]]; then
+    [[ -x "$macos_signing_helper" ]] ||
+      die "macOS qualification requires the repository signing helper: $macos_signing_helper"
+    [[ -n "$app_bundle" && -d "$app_bundle" ]] ||
+      die "macOS qualification requires an OBS application bundle"
+    "$macos_signing_helper" verify "$app_bundle" ||
+      die "macOS qualification requires a stable app signed by the pinned local development identity"
+  fi
   mkdir -p "$output" "$root" "$root/logs" "$root/validators" "$root/resources" \
     "$root/reports" "$root/state" "$root/stimulus"
 
@@ -140,7 +190,9 @@ command_init() {
   fi
   touch "$root_absolute/cases.jsonl" "$root_absolute/events.jsonl" \
     "$root_absolute/manual-checks.jsonl"
-  if [[ -f .qualification-run-root ]]; then
+  if [[ "$write_marker" -eq 0 ]]; then
+    :
+  elif [[ -f .qualification-run-root ]]; then
     local recorded_root
     IFS= read -r recorded_root <.qualification-run-root
     [[ "$recorded_root" == "$root_absolute" ]] ||
@@ -154,6 +206,52 @@ command_init() {
     '{app_executable:$app,output_root:$output}')"
   echo "Initialized append-only qualification run: $root_absolute"
   echo "Configure the dashboard output root as: $output_absolute"
+}
+
+command_handoff() {
+  [[ "$(uname -s)" == Darwin ]] || die "handoff is supported only on macOS"
+  local user='' app='' output='' root=''
+  while (( $# > 0 )); do
+    case "$1" in
+      --user) user="${2:-}"; shift 2 ;;
+      --app) app="${2:-}"; shift 2 ;;
+      --output-root) output="${2:-}"; shift 2 ;;
+      --run-root) root="${2:-}"; shift 2 ;;
+      *) die "unknown or incomplete handoff argument '$1'" ;;
+    esac
+  done
+  [[ "$user" =~ ^[a-z_][a-z0-9_-]*[$]?$ ]] || die "handoff requires a valid --user short name"
+  [[ -n "$app" && -n "$output" && -n "$root" ]] ||
+    die "handoff requires --user, --app, --output-root, and --run-root"
+  output="$(canonical_new_shared_path "$output" "output root")" || return
+  root="$(canonical_new_shared_path "$root" "run root")" || return
+  [[ "$output" != "$root" ]] || die "output and run roots must differ"
+  [[ ! -e "$output" && ! -e "$root" ]] ||
+    die "handoff refuses to reuse an existing output or run root"
+  require_tool dscl
+  require_tool dseditgroup
+  require_tool sudo
+  dscl . -read "/Users/$user" UniqueID >/dev/null 2>&1 ||
+    die "standard user '$user' does not exist"
+  if dseditgroup -o checkmember -m "$user" admin 2>/dev/null | grep -q 'yes'; then
+    die "handoff target '$user' is an administrator, not a standard user"
+  fi
+
+  # Signature verification happens inside init before either evidence root exists.
+  command_init --app "$app" --output-root "$output" --run-root "$root" --no-marker
+  local administrator
+  administrator="$(id -un)"
+  [[ -d "$output" && ! -L "$output" && "$(stat -f %Su "$output")" == "$administrator" ]] ||
+    die "output root changed unexpectedly before protected handoff"
+  [[ -d "$root" && ! -L "$root" && "$(stat -f %Su "$root")" == "$administrator" ]] ||
+    die "run root changed unexpectedly before protected handoff"
+  echo "macOS may request the signing administrator's password to transfer only:"
+  printf '  %s\n  %s\n' "$output" "$root"
+  sudo chown -R "$user":staff "$output" "$root" ||
+    die "could not transfer the initialized roots to '$user'"
+  [[ "$(stat -f %Su "$output")" == "$user" && "$(stat -f %Su "$root")" == "$user" ]] ||
+    die "handoff ownership verification failed"
+  echo "Protected handoff complete. No signing identity material was transferred."
 }
 
 command_launch() {
@@ -391,6 +489,180 @@ command_kill_capture() {
   echo "Sent SIGKILL to exact recorded OBS PID $pid"
 }
 
+command_manual_check() {
+  local check='' result='' note='' url=''
+  while (( $# > 0 )); do
+    case "$1" in
+      --check) check="${2:-}"; shift 2 ;;
+      --result) result="${2:-}"; shift 2 ;;
+      --note) note="${2:-}"; shift 2 ;;
+      --url) url="${2:-}"; shift 2 ;;
+      *) die "unknown or incomplete manual-check argument '$1'" ;;
+    esac
+  done
+  [[ "$check" =~ ^[a-z][a-z0-9_]*$ ]] || die "manual-check requires a snake_case --check ID"
+  case "$result" in pass|fail|skip) ;; *) die "--result must be pass, fail, or skip" ;; esac
+  [[ -n "$note" ]] || die "manual-check requires a nonempty --note"
+  if [[ "$check" == windows_workflow ]]; then
+    [[ "$url" =~ ^https://github\.com/[^/]+/[^/]+/actions/runs/[0-9]+([/?#].*)?$ ]] ||
+      die "windows_workflow requires a GitHub Actions run URL"
+  elif [[ -n "$url" ]]; then
+    die "--url is accepted only for windows_workflow"
+  fi
+  jq -nc --arg timestamp "$(utc_now)" --arg check "$check" --arg result "$result" \
+    --arg note "$note" --arg url "$url" \
+    '{timestamp:$timestamp,check:$check,result:$result,note:$note}
+     + (if $url == "" then {} else {url:$url} end)' >>"$run_root/manual-checks.jsonl" ||
+    die "could not append manual check"
+  echo "Recorded manual check '$check': $result"
+}
+
+command_finalize() {
+  local stimulus="$run_root/stimulus/stimulus-results.jsonl"
+  [[ -f "$stimulus" ]] || stimulus=/dev/null
+  local result_file
+  result_file="$(unique_path "$run_root/state" finalization-candidate .json)"
+  if ! jq -n \
+    --slurpfile cases "$ledger" \
+    --slurpfile events "$events" \
+    --slurpfile manual "$run_root/manual-checks.jsonl" \
+    --slurpfile stimulus "$stimulus" '
+    def routing:
+      [
+        {case:"both_on",route:"both",desktop_audio:true,desktop_tracks:3,camera_tracks:1},
+        {case:"both_off",route:"both",desktop_audio:false,desktop_tracks:2,camera_tracks:1},
+        {case:"desktop_on",route:"desktop",desktop_audio:true,desktop_tracks:3,camera_tracks:0},
+        {case:"desktop_off",route:"desktop",desktop_audio:false,desktop_tracks:2,camera_tracks:0},
+        {case:"camera_on",route:"camera",desktop_audio:true,desktop_tracks:2,camera_tracks:1},
+        {case:"camera_off",route:"camera",desktop_audio:false,desktop_tracks:1,camera_tracks:1},
+        {case:"off_on",route:"off",desktop_audio:true,desktop_tracks:2,camera_tracks:0},
+        {case:"off_off",route:"off",desktop_audio:false,desktop_tracks:1,camera_tracks:0}
+      ];
+    def failure_cases: ["failpoint_preflight","failpoint_desktop-start","failpoint_camera-start"];
+    def required_manual:
+      [
+        "canonical_pregrant_blockers","canonical_viewport_720x600",
+        "signed_rebuild_permission_persistence","portable_startup",
+        "portable_config_containment","fresh_pregrant_blockers",
+        "microphone_denied_routes","output_path_missing",
+        "output_path_regular_file","output_path_unwritable",
+        "blocker_recording","blocker_stream","blocker_replay_buffer",
+        "blocker_virtual_camera","controls_locked","viewport_720x600",
+        "settings_persistence","manifest_ordering","camera_release",
+        "advanced_obs_handoff","stability_responsive","stability_no_errors",
+        "forced_termination_media_readable","forced_relaunch_recovery",
+        "windows_workflow"
+      ];
+    def case_by_name($name): [$cases[] | select(.case == $name)];
+    def add_error($condition; $message): if $condition then . else . + [$message] end;
+    def track_count($case; $role):
+      (($case.expected_routing[($role + "_tracks")] // []) | length);
+    def expected_audio:
+      [routing[].case as $name
+       | case_by_name($name)[0] as $case
+       | ["desktop","camera"][] as $role
+       | ($case.expected_routing[($role + "_tracks")] // [])[]
+       | {case:$name,role:$role,track:.track,name:.name}];
+    [] |
+    add_error(($cases | length) == 13; "case inventory must contain exactly 13 entries") |
+    reduce routing[] as $expected (.;
+      case_by_name($expected.case) as $found |
+      add_error(($found | length) == 1; "routing case \($expected.case) must occur exactly once") |
+      if ($found | length) == 1 then
+        $found[0] as $case |
+        add_error($case.result == "pass"; "routing case \($expected.case) did not pass") |
+        add_error($case.expectation == "completed"; "routing case \($expected.case) is not completed") |
+        add_error(($case.duration_bounds.min_seconds // 0) >= 12; "routing case \($expected.case) lacks a 12-second minimum") |
+        add_error(($case.duration_bounds.max_seconds // 999999) <= 15; "routing case \($expected.case) lacks a 15-second maximum") |
+        add_error($case.expected_routing.microphone_route == $expected.route; "routing case \($expected.case) has the wrong microphone route") |
+        add_error($case.expected_routing.desktop_audio == $expected.desktop_audio; "routing case \($expected.case) has the wrong Desktop-audio state") |
+        add_error(track_count($case;"desktop") == $expected.desktop_tracks; "routing case \($expected.case) has the wrong Desktop track count") |
+        add_error(track_count($case;"camera") == $expected.camera_tracks; "routing case \($expected.case) has the wrong Camera track count")
+      else . end) |
+    reduce failure_cases[] as $name (.;
+      case_by_name($name) as $found |
+      add_error(($found | length) == 1; "failure case \($name) must occur exactly once") |
+      if ($found | length) == 1 then
+        add_error($found[0].result == "pass"; "failure case \($name) did not pass") |
+        add_error($found[0].expectation == "initialization-error"; "failure case \($name) has the wrong expectation")
+      else . end) |
+    reduce ["preflight","desktop-start","camera-start"][] as $failpoint (.;
+      add_error(([$events[] | select(.type == "launch" and .failpoint == $failpoint)] | length) == 1;
+                "failpoint launch \($failpoint) must occur exactly once")) |
+    case_by_name("stability_30m") as $stability |
+    add_error(($stability | length) == 1; "stability_30m must occur exactly once") |
+    if ($stability | length) == 1 then
+      add_error($stability[0].result == "pass" and $stability[0].expectation == "completed";
+                "stability_30m did not complete successfully") |
+      add_error(($stability[0].duration_bounds.min_seconds // 0) >= 1800;
+                "stability_30m lacks a 1,800-second minimum")
+    else . end |
+    case_by_name("forced_termination") as $forced |
+    add_error(($forced | length) == 1; "forced_termination must occur exactly once") |
+    if ($forced | length) == 1 then
+      add_error($forced[0].result == "pass" and $forced[0].expectation == "interrupted";
+                "forced_termination did not validate as interrupted") |
+      add_error(($forced[0].duration_bounds.min_seconds // 0) >= 30;
+                "forced_termination lacks a 30-second minimum")
+    else . end |
+    [$events[] | select(.type == "monitor")] as $all_monitors |
+    [$all_monitors[] | select(.result == "pass" and .samples == 31
+      and .rss_slope_kib_per_minute <= 1024
+      and .ten_consecutive_post_warmup_rises == false)] as $monitors |
+    add_error(($all_monitors | length) == 1; "monitor inventory must contain exactly one event") |
+    add_error(($monitors | length) == 1; "exactly one passing 31-sample stability monitor is required") |
+    if ($monitors | length) == 1 then
+      add_error(([$events[] | select(.type == "launch" and .pid == $monitors[0].pid)] | length) >= 1;
+                "stability monitor PID is not a recorded OBS launch PID")
+    else . end |
+    [$events[] | select(.type == "kill-capture")] as $all_kills |
+    [$all_kills[] | select(.signal == "SIGKILL")] as $kills |
+    add_error(($all_kills | length) == 1; "forced-kill inventory must contain exactly one event") |
+    add_error(($kills | length) == 1; "exactly one forced SIGKILL event is required") |
+    if ($kills | length) == 1 then
+      add_error(([$events[] | select(.type == "launch" and .pid == $kills[0].pid)] | length) >= 1;
+                "forced SIGKILL PID is not a recorded OBS launch PID")
+    else . end |
+    add_error(($manual | all(.result == "pass")); "manual checks contain a failure or skip") |
+    reduce required_manual[] as $name (.;
+      add_error(([$manual[] | select(.check == $name)] | length) == 1;
+                "manual check \($name) must occur exactly once")) |
+    [$manual[] | select(.check == "windows_workflow")][0] as $windows |
+    add_error(($windows.url // "") | test("^https://github[.]com/[^/]+/[^/]+/actions/runs/[0-9]+([/?#].*)?$");
+              "Windows workflow result lacks a valid GitHub Actions run URL") |
+    expected_audio as $expected_audio |
+    add_error(($stimulus | all(.result == "pass")); "audio results contain a failure or skip") |
+    add_error(($stimulus | length) == ($expected_audio | length);
+              "audio result inventory does not exactly match the routing tracks") |
+    reduce $expected_audio[] as $expected (.;
+      add_error(([$stimulus[] | select(.case == $expected.case and .role == $expected.role
+        and .track == $expected.track and .name == $expected.name)] | length) == 1;
+        "audio result \($expected.case)/\($expected.role)/track\($expected.track) must occur exactly once")) |
+    if length == 0 then
+      {result:"pass",case_count:($cases|length),manual_check_count:($manual|length),
+       audio_result_count:($stimulus|length),monitor_count:($monitors|length),
+       forced_kill_count:($kills|length),windows_workflow_url:$windows.url}
+    else {result:"fail",errors:.} end
+  ' >"$result_file"; then
+    rm -f "$result_file"
+    die "could not evaluate final qualification inventory"
+  fi
+
+  if [[ "$(jq -r .result "$result_file")" != pass ]]; then
+    jq -r '.errors[] | "incomplete: \(.)"' "$result_file" >&2
+    rm -f "$result_file"
+    return 1
+  fi
+  local finalization
+  finalization="$(unique_path "$run_root/reports" finalization .json)"
+  jq --arg finalized_at "$(utc_now)" '. + {finalized_at:$finalized_at}' "$result_file" >"$finalization"
+  rm -f "$result_file"
+  record_event finalize "$(jq -nc --arg finalization "$finalization" --arg result pass \
+    '{result:$result,finalization:$finalization}')"
+  echo "Strict completeness gate: PASS"
+  echo "Finalization evidence: $finalization"
+}
+
 command_validate() {
   local aggregate
   aggregate="$(unique_path "$run_root/validators" all-cases .log)"
@@ -427,6 +699,15 @@ command_report() {
     echo "- Output root: \`$output_root\`"
     echo "- OBS executable: \`$app_executable\`"
     echo
+    echo "## Strict finalization"
+    echo
+    if jq -e 'select(.type=="finalize" and .result=="pass")' "$events" >/dev/null; then
+      jq -r 'select(.type=="finalize" and .result=="pass") |
+        "- **PASS** — `\(.finalization)`"' "$events"
+    else
+      echo "No passing strict finalization has been recorded."
+    fi
+    echo
     echo "## Cases"
     echo
     echo "| Case | State | Result | Session | Desktop bytes | Camera bytes |"
@@ -453,7 +734,8 @@ command_report() {
     echo "## Manual checks"
     echo
     if [[ -s "$run_root/manual-checks.jsonl" ]]; then
-      jq -r '"- \(.check): **\(.result)** — \(.note // "")"' "$run_root/manual-checks.jsonl"
+      jq -r '"- \(.check): **\(.result)** — \(.note // "")" +
+        (if .url then " — [workflow run](\(.url))" else "" end)' "$run_root/manual-checks.jsonl"
     else
       echo "No manual checks have been appended to \`manual-checks.jsonl\`."
     fi
@@ -479,7 +761,8 @@ command="$1"
 shift
 case "$command" in
   init) command_init "$@" ;;
-  launch|capture|monitor|kill-capture|validate|report)
+  handoff) command_handoff "$@" ;;
+  launch|capture|monitor|kill-capture|manual-check|finalize|validate|report)
     require_tool jq
     resolve_run_root
     "command_${command//-/_}" "$@"

@@ -8,6 +8,9 @@ This folder contains:
   - `format-manifest.py` which formats Flatpak manifest JSON files
 - The Flatpak manifest used to build OBS Studio
 - Files used for Steam packaging
+- `split-obs-macos-dev.sh`, which creates, pins, preflights, serializes signing
+  for, builds with, and verifies the local macOS development signing identity
+  used by Dual Capture qualification
 
 
 ## Formatting scripts
