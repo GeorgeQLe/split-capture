@@ -129,7 +129,7 @@ Record the pre-grant blockers before granting each service.
    ```
 
 6. Confirm the launch log says portable mode is active, configuration exists
-   only below `Split Capture.app/Contents/config`, the Dual Capture dashboard is
+   only below `Split Capture.app/Contents/config/split-capture`, the Dual Capture dashboard is
    frontmost, and neither the permissions review nor Auto-Configuration Wizard
    appears.
 
@@ -163,11 +163,11 @@ Before granting anything, record the specific Screen Recording, Camera, and
 Microphone blockers and confirm Start is disabled. Manually grant Screen
 Recording and Camera, restarting only when macOS requires it. With Microphone
 still denied, confirm Both, Desktop, and Camera are blocked and Off is ready.
-Then grant Microphone, return focus to OBS, and confirm readiness refreshes
+Then grant Microphone, return focus to Split Capture, and confirm readiness refreshes
 without restarting.
 
 Also record the exact blockers for a missing output path, a regular-file path,
-an unwritable directory, and an active standard OBS recording/stream/replay
+an unwritable directory, and an active Advanced OBS recording/stream/replay
 buffer/virtual-camera output. At the dashboard minimum of 720×600, scroll from
 top to bottom and verify every device selector, permission action, meter,
 warning, estimate, statistic, and button is reachable without clipping or
@@ -215,7 +215,7 @@ cleanly, and record that all settings persist.
 
 ## Injected initialization failures
 
-Retain all earlier failure evidence. For each failpoint, cleanly exit OBS,
+Retain all earlier failure evidence. For each failpoint, cleanly exit Split Capture,
 launch with the named one-shot failpoint, and run `capture` while attempting one
 capture:
 
@@ -262,7 +262,7 @@ append that observation.
 
 ## Windows and final report
 
-Manually dispatch `.github/workflows/dual-capture-windows-qualification.yaml`.
+Manually dispatch `.github/workflows/split-capture-windows-qualification.yaml`.
 Record the workflow URL and result with:
 
 ```sh

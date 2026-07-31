@@ -709,6 +709,8 @@ static OBSSourceAutoRelease CreatePreviewSource(const DualCaptureDevice &device,
 	if (camera) {
 		obs_data_set_int(settings, "audio_output_mode", 0);
 	}
+#else
+	(void)camera;
 #endif
 	return obs_source_create_private(device.sourceId.c_str(), name, settings);
 }
