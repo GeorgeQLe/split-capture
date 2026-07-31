@@ -3,14 +3,14 @@
 set -euo pipefail
 umask 077
 
-readonly identity_name='Split OBS Local Development'
-readonly expected_bundle_id='com.obsproject.obs-studio'
+readonly identity_name='Split Capture Local Development'
+readonly expected_bundle_id='io.github.georgeqle.splitcapture'
 script_directory="$(cd "$(dirname "$0")" && pwd)"
 readonly script_directory
 repository_root="$(cd "$script_directory/.." && pwd)"
 readonly repository_root
-readonly canonical_app="$repository_root/build_macos/frontend/Debug/OBS.app"
-readonly support_directory="${HOME:?}/Library/Application Support/Split OBS Local Development"
+readonly canonical_app="$repository_root/build_macos/frontend/Debug/Split Capture.app"
+readonly support_directory="${HOME:?}/Library/Application Support/Split Capture Local Development"
 readonly fingerprint_file="$support_directory/certificate.sha256"
 readonly signing_lock_directory="$support_directory/signing.lock"
 temporary_cleanup_directory=''
@@ -161,7 +161,7 @@ EOF
     echo "Found the new '$identity_name' certificate; finishing its code-signing trust setup."
   fi
 
-  temporary_directory="$(mktemp -d "${TMPDIR:-/tmp}/split-obs-cert.XXXXXX")"
+  temporary_directory="$(mktemp -d "${TMPDIR:-/tmp}/split-capture-cert.XXXXXX")"
   temporary_cleanup_directory="$temporary_directory"
   certificate_file="$temporary_directory/certificate.pem"
   security find-certificate -c "$identity_name" -p "$keychain" >"$certificate_file"
@@ -181,7 +181,7 @@ command_doctor() {
   fingerprint="$(identity_fingerprint "$keychain")"
   [[ "$fingerprint" =~ ^[0-9A-F]{64}$ ]] || die "could not read the identity's SHA-256 certificate fingerprint"
 
-  temporary_directory="$(mktemp -d "${TMPDIR:-/tmp}/split-obs-trust.XXXXXX")"
+  temporary_directory="$(mktemp -d "${TMPDIR:-/tmp}/split-capture-trust.XXXXXX")"
   temporary_cleanup_directory="$temporary_directory"
   certificate_file="$temporary_directory/certificate.pem"
   security find-certificate -c "$identity_name" -p "$keychain" >"$certificate_file"
@@ -244,7 +244,7 @@ command_verify() {
   grep -Eqi '(^|[[:space:](])(anchor|certificate)([[:space:])]|$)' <<<"$requirement" ||
     die "the designated requirement is not certificate-based"
 
-  temporary_directory="$(mktemp -d "${TMPDIR:-/tmp}/split-obs-signature.XXXXXX")"
+  temporary_directory="$(mktemp -d "${TMPDIR:-/tmp}/split-capture-signature.XXXXXX")"
   temporary_cleanup_directory="$temporary_directory"
   codesign -d --extract-certificates="$temporary_directory/certificate" "$app" >/dev/null 2>&1 ||
     die "could not extract the app's signing certificate"
@@ -271,7 +271,7 @@ command_preflight() {
 
   source_binary=/usr/bin/true
   [[ -x "$source_binary" ]] || die "preflight source Mach-O is unavailable: $source_binary"
-  temporary_directory="$(mktemp -d "${TMPDIR:-/tmp}/split-obs-preflight.XXXXXX")"
+  temporary_directory="$(mktemp -d "${TMPDIR:-/tmp}/split-capture-preflight.XXXXXX")"
   chmod 700 "$temporary_directory"
   temporary_cleanup_directory="$temporary_directory"
   signed_binary="$temporary_directory/true"
@@ -323,7 +323,7 @@ command_build() {
       -DENABLE_DUAL_CAPTURE_TEST_HOOKS=ON \
       -DENABLE_DUAL_CAPTURE_TESTS=ON \
       -DENABLE_VIRTUALCAM=ON \
-      -DSPLIT_OBS_ENABLE_CUSTOM_UPDATER=OFF
+      -DSPLIT_CAPTURE_ENABLE_CUSTOM_UPDATER=OFF
     require_qualification_configuration
     CODESIGN_IDENT="$identity_name" cmake --build build_macos --config Debug -- -jobs 1 2>&1 |
       redact_routine_signing_output
@@ -348,7 +348,7 @@ ENABLE_PORTABLE_CONFIG=ON
 ENABLE_DUAL_CAPTURE_TEST_HOOKS=ON
 ENABLE_DUAL_CAPTURE_TESTS=ON
 ENABLE_VIRTUALCAM=ON
-SPLIT_OBS_ENABLE_CUSTOM_UPDATER=OFF
+SPLIT_CAPTURE_ENABLE_CUSTOM_UPDATER=OFF
 EOF
   echo "Qualification CMake configuration check passed."
 }

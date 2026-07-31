@@ -1,4 +1,4 @@
-name: Dual Capture Windows Qualification
+name: Split Capture Windows Qualification
 
 on:
   workflow_dispatch:
@@ -30,7 +30,7 @@ jobs:
         if: always()
         run: |
           @"
-          ## Dual Capture Windows x64
+          ## Split Capture Windows x64
 
           - Preset: ``windows-ci-x64``
           - Configuration: ``Debug``

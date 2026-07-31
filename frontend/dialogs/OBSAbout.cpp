@@ -31,19 +31,19 @@ OBSAbout::OBSAbout(QWidget *parent) : QDialog(parent), ui(new Ui::OBSAbout)
 
 	ui->version->setText(ver + bitness);
 
-	ui->contribute->setText(QTStr("About.Contribute"));
+	ui->contribute->setText("Split Capture by GeorgeQLe");
 
 	if (steam) {
 		delete ui->donate;
 	} else {
-		ui->donate->setText("&nbsp;&nbsp;<a href='https://obsproject.com/contribute'>" + QTStr("About.Donate") +
-				    "</a>");
+		ui->donate->setText(
+			"&nbsp;&nbsp;<a href='https://github.com/GeorgeQLe/split-capture'>Project homepage</a>");
 		ui->donate->setTextInteractionFlags(Qt::TextBrowserInteraction);
 		ui->donate->setOpenExternalLinks(true);
 	}
 
-	ui->getInvolved->setText("&nbsp;&nbsp;<a href='https://obsproject.com/developer-contributing'>" +
-				 QTStr("About.GetInvolved") + "</a>");
+	ui->getInvolved->setText(
+		"&nbsp;&nbsp;<a href='https://github.com/GeorgeQLe/split-capture'>Source and issues</a>");
 	ui->getInvolved->setTextInteractionFlags(Qt::TextBrowserInteraction);
 	ui->getInvolved->setOpenExternalLinks(true);
 
@@ -64,65 +64,18 @@ OBSAbout::OBSAbout(QWidget *parent) : QDialog(parent), ui(new Ui::OBSAbout)
 
 	QPointer<OBSAbout> about(this);
 
-	OBSBasic *main = OBSBasic::Get();
-	if (main->patronJson.empty() && !main->patronJsonThread) {
-		RemoteTextThread *thread =
-			new RemoteTextThread("https://obsproject.com/patreon/about-box.json", "application/json");
-		QObject::connect(thread, &RemoteTextThread::Result, main, &OBSBasic::UpdatePatronJson);
-		QObject::connect(thread, &RemoteTextThread::Result, this, &OBSAbout::ShowAbout);
-		main->patronJsonThread.reset(thread);
-		thread->start();
-	} else {
-		ShowAbout();
-	}
+	ShowAbout();
 }
 
 void OBSAbout::ShowAbout()
 {
-	OBSBasic *main = OBSBasic::Get();
-
-	if (main->patronJson.empty()) {
-		return;
-	}
-
-	std::string error;
-	Json json = Json::parse(main->patronJson, error);
-	const Json::array &patrons = json.array_items();
-	QString text;
-
-	text += "<h1>Top Patreon contributors:</h1>";
-	text += "<p style=\"font-size:16px;\">";
-	bool first = true;
-	bool top = true;
-
-	for (const Json &patron : patrons) {
-		std::string name = patron["name"].string_value();
-		std::string link = patron["link"].string_value();
-		int amount = patron["amount"].int_value();
-
-		if (top && amount < 5000) {
-			text += "</p>";
-			top = false;
-		} else if (!first) {
-			text += "<br/>";
-		}
-
-		if (!link.empty()) {
-			text += "<a href=\"";
-			text += QT_UTF8(link.c_str()).toHtmlEscaped();
-			text += "\">";
-		}
-		text += QT_UTF8(name.c_str()).toHtmlEscaped();
-		if (!link.empty()) {
-			text += "</a>";
-		}
-
-		if (first) {
-			first = false;
-		}
-	}
-
-	ui->textBrowser->setHtml(text);
+	ui->textBrowser->setHtml(
+		"<h1>Split Capture</h1>"
+		"<p>Synchronized desktop and camera recording to separate, recoverable files.</p>"
+		"<p>Split Capture is based on OBS Studio and uses its GPL-licensed capture engine and "
+		"advanced interface. OBS Studio is copyright its contributors; Split Capture is "
+		"published by GeorgeQLe.</p>"
+		"<p><a href='https://github.com/GeorgeQLe/split-capture'>Project homepage and source</a></p>");
 }
 
 void OBSAbout::ShowAuthors()

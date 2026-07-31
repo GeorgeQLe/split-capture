@@ -8,6 +8,18 @@
 	<true/>
 	<key>LSAppNapIsDisabled</key>
 	<true/>
+	<key>CFBundleName</key>
+	<string>Split Capture</string>
+	<key>CFBundleDisplayName</key>
+	<string>Split Capture</string>
+	<key>NSHumanReadableCopyright</key>
+	<string>(c) 2012-2026 OBS contributors, Split Capture by GeorgeQLe</string>
+	<key>NSCameraUsageDescription</key>
+	<string>Split Capture needs camera access to record a separate camera file.</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>Split Capture needs microphone access to record audio.</string>
+	<key>NSAppleEventsUsageDescription</key>
+	<string>Split Capture needs background event access to enable hotkeys while not in focus.</string>
 	${SPARKLE_INFO_PLIST}
 </dict>
 </plist>

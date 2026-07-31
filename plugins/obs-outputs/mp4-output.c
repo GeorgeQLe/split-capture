@@ -619,7 +619,7 @@ struct obs_output_info mp4_output_info = {
 };
 
 /*
- * Internal Split OBS output used by Dual Capture's camera role.  Unlike the
+ * Internal Split Capture output used by Dual Capture's camera role. Unlike the
  * stock Hybrid MP4 output, video is mandatory while audio is optional.
  */
 struct obs_output_info split_mp4_video_output_info = {

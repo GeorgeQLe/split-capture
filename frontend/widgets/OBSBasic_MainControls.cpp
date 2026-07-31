@@ -36,7 +36,7 @@
 #endif
 #include <dialogs/OBSRemux.hpp>
 #include <settings/OBSBasicSettings.hpp>
-#if defined(_WIN32) && defined(SPLIT_OBS_ENABLE_CUSTOM_UPDATER)
+#if defined(_WIN32) && defined(SPLIT_CAPTURE_ENABLE_CUSTOM_UPDATER)
 #include <utility/AutoUpdateThread.hpp>
 #endif
 #include <utility/RemoteTextThread.hpp>
@@ -313,7 +313,7 @@ void OBSBasic::UploadLog(const char *subdir, const char *file, const LogUploadTy
 void OBSBasic::on_actionShowLogs_triggered()
 {
 	char logDir[512];
-	if (GetAppConfigPath(logDir, sizeof(logDir), "obs-studio/logs") <= 0) {
+	if (GetAppConfigPath(logDir, sizeof(logDir), "split-capture/logs") <= 0) {
 		return;
 	}
 
@@ -378,7 +378,7 @@ void OBSBasic::on_actionCheckForUpdates_triggered()
 
 void OBSBasic::on_actionRepair_triggered()
 {
-#if defined(_WIN32) && defined(SPLIT_OBS_ENABLE_CUSTOM_UPDATER)
+#if defined(_WIN32) && defined(SPLIT_CAPTURE_ENABLE_CUSTOM_UPDATER)
 	ui->actionCheckForUpdates->setEnabled(false);
 	ui->actionRepair->setEnabled(false);
 
@@ -419,19 +419,19 @@ void OBSBasic::logUploadFinished(const std::string &text, const std::string &err
 
 void OBSBasic::on_actionHelpPortal_triggered()
 {
-	QUrl url = QUrl("https://obsproject.com/help", QUrl::TolerantMode);
+	QUrl url = QUrl("https://github.com/GeorgeQLe/split-capture#readme", QUrl::TolerantMode);
 	QDesktopServices::openUrl(url);
 }
 
 void OBSBasic::on_actionWebsite_triggered()
 {
-	QUrl url = QUrl("https://obsproject.com", QUrl::TolerantMode);
+	QUrl url = QUrl("https://github.com/GeorgeQLe/split-capture", QUrl::TolerantMode);
 	QDesktopServices::openUrl(url);
 }
 
 void OBSBasic::on_actionDiscord_triggered()
 {
-	QUrl url = QUrl("https://obsproject.com/discord", QUrl::TolerantMode);
+	QUrl url = QUrl("https://github.com/GeorgeQLe/split-capture/issues", QUrl::TolerantMode);
 	QDesktopServices::openUrl(url);
 }
 
@@ -457,14 +457,14 @@ void OBSBasic::on_actionShowWhatsNew_triggered()
 
 void OBSBasic::on_actionReleaseNotes_triggered()
 {
-	QString addr("https://github.com/obsproject/obs-studio/releases");
+	QString addr("https://github.com/GeorgeQLe/split-capture/releases/tag");
 	QUrl url(QString("%1/%2").arg(addr, obs_get_version_string()), QUrl::TolerantMode);
 	QDesktopServices::openUrl(url);
 }
 
 void OBSBasic::on_actionShowSettingsFolder_triggered()
 {
-	const std::string userConfigPath = App()->userConfigLocation.u8string() + "/obs-studio";
+	const std::string userConfigPath = App()->userConfigLocation.u8string() + "/split-capture";
 	const QString userConfigLocation = QString::fromStdString(userConfigPath);
 
 	QDesktopServices::openUrl(QUrl::fromLocalFile(userConfigLocation));

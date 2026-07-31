@@ -76,7 +76,7 @@ EOF
       >>"$root/manual-checks.jsonl"
   done
   jq -nc '{check:"windows_workflow",result:"pass",note:"fixture",
-    url:"https://github.com/example/split-obs/actions/runs/123456"}' >>"$root/manual-checks.jsonl"
+    url:"https://github.com/example/split-capture/actions/runs/123456"}' >>"$root/manual-checks.jsonl"
 
   jq -c 'select(.case | test("^(both|desktop|camera|off)_(on|off)$")) |
     .case as $case |
@@ -169,7 +169,7 @@ if [[ "$(uname -s)" == Darwin ]]; then
   if handoff_error="$(
     "$runner" handoff \
       --user nobody \
-      --app /private/tmp/nonexistent/OBS.app \
+      --app "/private/tmp/nonexistent/Split Capture.app" \
       --output-root /Users/Shared/../../unsafe-output \
       --run-root /Users/Shared/../../unsafe-run 2>&1
   )"; then

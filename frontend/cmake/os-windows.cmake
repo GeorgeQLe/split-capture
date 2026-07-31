@@ -36,7 +36,7 @@ target_sources(
     utility/win-dll-blocklist.c
 )
 
-if(SPLIT_OBS_ENABLE_CUSTOM_UPDATER)
+if(SPLIT_CAPTURE_ENABLE_CUSTOM_UPDATER)
   target_sources(
     obs-studio
     PRIVATE

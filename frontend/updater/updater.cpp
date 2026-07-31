@@ -427,7 +427,7 @@ bool DownloadWorkerThread()
 
 	const DWORD compressionFlags = WINHTTP_DECOMPRESSION_FLAG_ALL;
 
-	HttpHandle hSession = WinHttpOpen(L"OBS Studio Updater/3.0", WINHTTP_ACCESS_TYPE_AUTOMATIC_PROXY,
+	HttpHandle hSession = WinHttpOpen(L"Split Capture Updater/1.0", WINHTTP_ACCESS_TYPE_AUTOMATIC_PROXY,
 					  WINHTTP_NO_PROXY_NAME, WINHTTP_NO_PROXY_BYPASS, 0);
 	if (!hSession) {
 		downloadThreadFailure = true;
@@ -600,12 +600,12 @@ static inline DWORD WaitIfOBS(DWORD id, const wchar_t *expected)
 		name = path;
 	}
 
-	if (_wcsnicmp(name, expected, 5) == 0) {
+	if (_wcsicmp(name, expected) == 0) {
 		HANDLE hWait[2];
 		hWait[0] = proc;
 		hWait[1] = cancelRequested;
 
-		Log(L"Waiting for OBS PID %d at %s...", id, path);
+		Log(L"Waiting for Split Capture PID %d at %s...", id, path);
 
 		int i = WaitForMultipleObjects(2, hWait, false, INFINITE);
 		if (i == WAIT_OBJECT_0 + 1) {
@@ -631,7 +631,7 @@ static bool WaitForOBS()
 	for (DWORD i = 0; i < count; i++) {
 		DWORD id = proc_ids[i];
 		if (id != 0) {
-			switch (WaitIfOBS(id, L"obs64")) {
+			switch (WaitIfOBS(id, L"split-capture.exe")) {
 			case WAITIFOBS_SUCCESS:
 				return true;
 			case WAITIFOBS_WRONG_PROCESS:
@@ -1213,7 +1213,7 @@ static bool UpdateVSRedists()
 
 	const DWORD compressionFlags = WINHTTP_DECOMPRESSION_FLAG_ALL;
 
-	HttpHandle hSession = WinHttpOpen(L"OBS Studio Updater/3.0", WINHTTP_ACCESS_TYPE_AUTOMATIC_PROXY,
+	HttpHandle hSession = WinHttpOpen(L"Split Capture Updater/1.0", WINHTTP_ACCESS_TYPE_AUTOMATIC_PROXY,
 					  WINHTTP_NO_PROXY_NAME, WINHTTP_NO_PROXY_BYPASS, 0);
 	if (!hSession) {
 		Status(L"VC Redist Update failed: Couldn't create session");
@@ -1317,7 +1317,7 @@ static bool UpdateVSRedists()
 
 static void UpdateRegistryVersion(const Manifest &manifest)
 {
-	const char *regKey = R"(Software\Microsoft\Windows\CurrentVersion\Uninstall\OBS Studio)";
+	const char *regKey = R"(Software\Microsoft\Windows\CurrentVersion\Uninstall\Split Capture)";
 	LSTATUS res;
 	HKEY key;
 	char version[32];
@@ -1870,7 +1870,7 @@ static void LaunchOBS(LPWSTR lpCmdLine)
 	SetCurrentDirectory(obsPath);
 	StringCbCopy(newCwd, sizeof(newCwd), obsPath);
 
-	StringCbCat(obsPath, sizeof(obsPath), L"\\obs64.exe");
+	StringCbCat(obsPath, sizeof(obsPath), L"\\split-capture.exe");
 
 	if (!FileExists(obsPath)) {
 		/* TODO: give user a message maybe? */
@@ -2079,7 +2079,7 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE, LPWSTR lpCmdLine, int)
 
 	if (!IsWindows10OrGreater()) {
 		MessageBox(nullptr,
-			   L"OBS Studio 28 and newer no longer support Windows 7,"
+			   L"Split Capture does not support Windows 7,"
 			   L" Windows 8, or Windows 8.1. You can disable the"
 			   L" following setting to opt out of future updates:"
 			   L" Settings → General → General → Automatically check"
@@ -2092,7 +2092,8 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE, LPWSTR lpCmdLine, int)
 
 		WinHandle hMutex = OpenMutex(SYNCHRONIZE, false, L"OBSUpdaterRunningAsNonAdminUser");
 		if (hMutex) {
-			MessageBox(nullptr, L"OBS Studio Updater must be run as an administrator.", L"Updater Error",
+			MessageBox(nullptr, L"Split Capture Updater must be run as an administrator.",
+				   L"Updater Error",
 				   MB_ICONWARNING);
 			return 2;
 		}

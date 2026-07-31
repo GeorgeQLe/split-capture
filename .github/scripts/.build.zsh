@@ -105,7 +105,7 @@ build() {
     setup_ubuntu
   }
 
-  local product_name='obs-studio'
+  local product_name='split-capture'
 
   pushd ${project_root}
 
@@ -200,9 +200,9 @@ build() {
         } else {
           run_xcodebuild ${build_args}
 
-          rm -rf OBS.app
-          mkdir OBS.app
-          ditto frontend/${config}/OBS.app OBS.app
+          rm -rf 'Split Capture.app'
+          mkdir 'Split Capture.app'
+          ditto 'frontend/'${config}'/Split Capture.app' 'Split Capture.app'
         }
       }
       popd

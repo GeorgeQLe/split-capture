@@ -6,7 +6,7 @@ include(cpackconfig_common)
 
 # Add GPLv2 license file to CPack
 set(CPACK_RESOURCE_FILE_LICENSE "${CMAKE_SOURCE_DIR}/frontend/data/license/gplv2.txt")
-set(CPACK_PACKAGE_EXECUTABLES "obs")
+set(CPACK_PACKAGE_EXECUTABLES "split-capture")
 
 if(ENABLE_RELEASE_BUILD)
   set(CPACK_PACKAGE_VERSION "${OBS_VERSION_CANONICAL}")
@@ -14,7 +14,7 @@ else()
   set(CPACK_PACKAGE_VERSION "${OBS_VERSION}")
 endif()
 
-set(CPACK_SOURCE_PACKAGE_FILE_NAME "obs-studio-${CPACK_PACKAGE_VERSION}-sources")
+set(CPACK_SOURCE_PACKAGE_FILE_NAME "split-capture-${CPACK_PACKAGE_VERSION}-sources")
 set(CPACK_SOURCE_GENERATOR "TGZ")
 set(CPACK_SOURCE_IGNORE_FILES "/.git" "${CMAKE_BINARY_DIR}" "/.ccache" "/.deps")
 set(CPACK_ARCHIVE_THREADS 0)

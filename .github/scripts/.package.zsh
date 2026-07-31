@@ -103,7 +103,7 @@ package() {
 
   check_${host_os}
 
-  local product_name='obs-studio'
+  local product_name='split-capture'
 
   local commit_version='0.0.0'
   local commit_distance='0'
@@ -118,13 +118,13 @@ package() {
 
   local output_name
   if (( commit_distance > 0 )) {
-    output_name="obs-studio-${commit_version}-${commit_hash}"
+    output_name="split-capture-${commit_version}-${commit_hash}"
   } else {
-    output_name="obs-studio-${commit_version}"
+    output_name="split-capture-${commit_version}"
   }
 
   if [[ ${host_os} == macos ]] {
-    if [[ ! -d build_macos/OBS.app ]] {
+    if [[ ! -d 'build_macos/Split Capture.app' ]] {
       log_error 'No application bundle found. Run the build script to create a valid application bundle.'
       return 0
     }
@@ -134,28 +134,28 @@ package() {
 
     local volume_name
     if (( commit_distance > 0 )) {
-      volume_name="OBS Studio ${commit_version}-${commit_hash} (${arch_names[${target##*-}]})"
+      volume_name="Split Capture ${commit_version}-${commit_hash} (${arch_names[${target##*-}]})"
     } else {
-      volume_name="OBS Studio ${commit_version} (${arch_names[${target##*-}]})"
+      volume_name="Split Capture ${commit_version} (${arch_names[${target##*-}]})"
     }
 
     if (( package )) {
       pushd build_macos
 
-      mkdir -p obs-studio/.background
-      cp ${project_root}/cmake/macos/resources/background.tiff obs-studio/.background/
-      cp ${project_root}/cmake/macos/resources/AppIcon.icns obs-studio/.VolumeIcon.icns
-      ln -s /Applications obs-studio/Applications
+      mkdir -p split-capture/.background
+      cp ${project_root}/cmake/macos/resources/background.tiff split-capture/.background/
+      cp ${project_root}/branding/assets/SplitCapture.icns split-capture/.VolumeIcon.icns
+      ln -s /Applications split-capture/Applications
 
-      mkdir -p obs-studio/OBS.app
-      ditto OBS.app obs-studio/OBS.app
+      mkdir -p 'split-capture/Split Capture.app'
+      ditto 'Split Capture.app' 'split-capture/Split Capture.app'
 
       local -i _status=0
 
       autoload -Uz create_diskimage
-      create_diskimage obs-studio ${volume_name} ${output_name} || _status=1
+      create_diskimage split-capture ${volume_name} ${output_name} || _status=1
 
-      rm -r obs-studio
+      rm -r split-capture
       if (( _status )) {
         log_error "Disk image creation failed."
         return 2
@@ -172,8 +172,8 @@ package() {
           return 2
         }
 
-        xcrun notarytool store-credentials 'OBS-Codesign-Password' --apple-id "${CODESIGN_IDENT_USER}" --team-id "${CODESIGN_TEAM}" --password "${CODESIGN_IDENT_PASS}"
-        xcrun notarytool submit "${output_name}".dmg --keychain-profile "OBS-Codesign-Password" --wait
+        xcrun notarytool store-credentials 'Split-Capture-Codesign' --apple-id "${CODESIGN_IDENT_USER}" --team-id "${CODESIGN_TEAM}" --password "${CODESIGN_IDENT_PASS}"
+        xcrun notarytool submit "${output_name}".dmg --keychain-profile "Split-Capture-Codesign" --wait
 
         local -i _status=0
 
@@ -186,9 +186,9 @@ package() {
       }
       popd
     } else {
-      log_group "Archiving obs-studio..."
+      log_group "Archiving split-capture..."
       pushd build_macos
-      XZ_OPT=-T0 tar -cvJf ${output_name}.tar.xz OBS.app
+      XZ_OPT=-T0 tar -cvJf ${output_name}.tar.xz 'Split Capture.app'
       popd
     }
 
@@ -211,20 +211,20 @@ package() {
     if (( debug )) cmake_args+=(--verbose)
 
     if (( package )) {
-      log_group "Packaging obs-studio..."
+      log_group "Packaging split-capture..."
       pushd ${project_root}
       ${cmake_bin} --build build_${target%%-*} --config ${config} --target package ${cmake_args}
       output_name="${output_name}-${target##*-}-ubuntu-gnu"
 
       pushd ${project_root}/build_${target%%-*}
-      local -a files=(obs-studio-*-Linux*.(ddeb|deb|ddeb.sha256|deb.sha256))
+      local -a files=(split-capture-*-Linux*.(ddeb|deb|ddeb.sha256|deb.sha256))
       for file (${files}) {
-        mv ${file} ${file//obs-studio-*-Linux/${output_name}}
+        mv ${file} ${file//split-capture-*-Linux/${output_name}}
       }
       popd
       popd
     } else {
-      log_group "Archiving obs-studio..."
+      log_group "Archiving split-capture..."
       output_name="${output_name}-${target##*-}-ubuntu-gnu"
 
       pushd ${project_root}/build_${target%%-*}/install/${config}
@@ -237,9 +237,9 @@ package() {
     output_name="${output_name}-sources"
 
     pushd ${project_root}/build_${target%%-*}
-    local -a files=(obs-studio-*-sources.tar.*)
+    local -a files=(split-capture-*-sources.tar.*)
     for file (${files}) {
-      mv ${file} ${file//obs-studio-*-sources/${output_name}}
+      mv ${file} ${file//split-capture-*-sources/${output_name}}
     }
     popd
     popd

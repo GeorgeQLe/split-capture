@@ -42,5 +42,8 @@ target_link_options(
 
 set_target_properties(
   updater
-  PROPERTIES FOLDER frontend OUTPUT_NAME updater MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>"
+  PROPERTIES
+    FOLDER frontend
+    OUTPUT_NAME split-capture-updater
+    MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>"
 )

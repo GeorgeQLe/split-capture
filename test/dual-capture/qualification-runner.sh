@@ -6,9 +6,9 @@ set -o pipefail
 script_directory="$(cd "$(dirname "$0")" && pwd)"
 validator="$script_directory/validate-session.sh"
 repository_root="$(cd "$script_directory/../.." && pwd)"
-macos_signing_helper="$repository_root/build-aux/split-obs-macos-dev.sh"
-if [[ ! -x "$macos_signing_helper" && -x "$script_directory/split-obs-macos-dev.sh" ]]; then
-  macos_signing_helper="$script_directory/split-obs-macos-dev.sh"
+macos_signing_helper="$repository_root/build-aux/split-capture-macos-dev.sh"
+if [[ ! -x "$macos_signing_helper" && -x "$script_directory/split-capture-macos-dev.sh" ]]; then
+  macos_signing_helper="$script_directory/split-capture-macos-dev.sh"
 fi
 
 usage() {
@@ -107,7 +107,7 @@ verify_recorded_pid() {
   local recorded_pid
   recorded_pid="$(jq -r .pid "$state")"
   [[ "$requested_pid" == "$recorded_pid" ]] ||
-    die "PID $requested_pid is not the exact recorded OBS PID $recorded_pid"
+    die "PID $requested_pid is not the exact recorded Split Capture PID $recorded_pid"
 }
 
 canonical_new_shared_path() {
@@ -157,16 +157,16 @@ command_init() {
   require_tool jq
   if [[ -d "$app" && "$app" == *.app ]]; then
     app_bundle="$app"
-    app="$app/Contents/MacOS/OBS"
+    app="$app/Contents/MacOS/Split Capture"
   elif [[ "$app" == */Contents/MacOS/* ]]; then
     app_bundle="${app%/Contents/MacOS/*}"
   fi
-  [[ -x "$app" ]] || die "OBS executable is not executable: $app"
+  [[ -x "$app" ]] || die "Split Capture executable is not executable: $app"
   if [[ "$(uname -s)" == Darwin ]]; then
     [[ -x "$macos_signing_helper" ]] ||
       die "macOS qualification requires the repository signing helper: $macos_signing_helper"
     [[ -n "$app_bundle" && -d "$app_bundle" ]] ||
-      die "macOS qualification requires an OBS application bundle"
+      die "macOS qualification requires a Split Capture application bundle"
     "$macos_signing_helper" verify "$app_bundle" ||
       die "macOS qualification requires a stable app signed by the pinned local development identity"
   fi
@@ -268,7 +268,7 @@ command_launch() {
     local existing_pid
     existing_pid="$(jq -r .pid "$existing_state")"
     if kill -0 "$existing_pid" 2>/dev/null; then
-      die "recorded OBS PID $existing_pid is still running"
+      die "recorded Split Capture PID $existing_pid is still running"
     fi
   fi
 
@@ -284,7 +284,7 @@ command_launch() {
   pid=$!
   sleep 1
   if ! kill -0 "$pid" 2>/dev/null; then
-    echo "error: OBS exited during launch; see $log" >&2
+    echo "error: Split Capture exited during launch; see $log" >&2
     return 1
   fi
   state="$(jq -nc --argjson pid "$pid" --arg started_at "$started_at" --arg log "$log" \
@@ -293,7 +293,7 @@ command_launch() {
   atomic_state "$state"
   printf '%s\n' "$state" >>"$run_root/state/launches.jsonl"
   record_event launch "$state"
-  echo "Launched exact OBS PID: $pid"
+  echo "Launched exact Split Capture PID: $pid"
   echo "Launch log: $log"
 }
 
@@ -314,7 +314,7 @@ command_capture() {
   local before_file
   before_file="$(mktemp "$run_root/state/.sessions-before.XXXXXX")" || exit 2
   find "$output_root" -mindepth 1 -maxdepth 1 -type d -print | sort >"$before_file"
-  echo "Waiting for operator to start case '$case_name' in OBS..."
+  echo "Waiting for operator to start case '$case_name' in Split Capture..."
 
   local timeout=600
   if [[ -n "$max_seconds" ]]; then
@@ -479,14 +479,14 @@ command_kill_capture() {
   done
   verify_recorded_pid "$pid"
   [[ "$after" =~ ^[0-9]+$ ]] || die "--after must be a nonnegative integer"
-  echo "Waiting $after seconds before sending SIGKILL only to recorded OBS PID $pid"
+  echo "Waiting $after seconds before sending SIGKILL only to recorded Split Capture PID $pid"
   sleep "$after"
   kill -0 "$pid" 2>/dev/null || { echo "error: PID $pid exited before SIGKILL" >&2; return 1; }
   kill -KILL "$pid"
   local data
   data="$(jq -nc --argjson pid "$pid" --argjson after "$after" '{pid:$pid,after_seconds:$after,signal:"SIGKILL"}')"
   record_event kill-capture "$data"
-  echo "Sent SIGKILL to exact recorded OBS PID $pid"
+  echo "Sent SIGKILL to exact recorded Split Capture PID $pid"
 }
 
 command_manual_check() {
@@ -613,7 +613,7 @@ command_finalize() {
     add_error(($monitors | length) == 1; "exactly one passing 31-sample stability monitor is required") |
     if ($monitors | length) == 1 then
       add_error(([$events[] | select(.type == "launch" and .pid == $monitors[0].pid)] | length) >= 1;
-                "stability monitor PID is not a recorded OBS launch PID")
+                "stability monitor PID is not a recorded Split Capture launch PID")
     else . end |
     [$events[] | select(.type == "kill-capture")] as $all_kills |
     [$all_kills[] | select(.signal == "SIGKILL")] as $kills |
@@ -621,7 +621,7 @@ command_finalize() {
     add_error(($kills | length) == 1; "exactly one forced SIGKILL event is required") |
     if ($kills | length) == 1 then
       add_error(([$events[] | select(.type == "launch" and .pid == $kills[0].pid)] | length) >= 1;
-                "forced SIGKILL PID is not a recorded OBS launch PID")
+                "forced SIGKILL PID is not a recorded Split Capture launch PID")
     else . end |
     add_error(($manual | all(.result == "pass")); "manual checks contain a failure or skip") |
     reduce required_manual[] as $name (.;
@@ -697,7 +697,7 @@ command_report() {
     echo "- Generated: $(utc_now)"
     echo "- Run root: \`$run_root\`"
     echo "- Output root: \`$output_root\`"
-    echo "- OBS executable: \`$app_executable\`"
+    echo "- Split Capture executable: \`$app_executable\`"
     echo
     echo "## Strict finalization"
     echo

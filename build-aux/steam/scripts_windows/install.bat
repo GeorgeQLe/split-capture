@@ -14,8 +14,8 @@ goto checkAdmin
 	)
 
 :writeRegistry
-	reg add "HKLM\SOFTWARE\OBS Studio" /f /t REG_SZ /d %1 /reg:32
-	reg add "HKLM\SOFTWARE\OBS Studio" /f /t REG_SZ /d %1 /reg:64
+	reg add "HKLM\SOFTWARE\Split Capture" /f /t REG_SZ /d %1 /reg:32
+	reg add "HKLM\SOFTWARE\Split Capture" /f /t REG_SZ /d %1 /reg:64
 
 :setupProgramData
 	:: Required for UWP applications

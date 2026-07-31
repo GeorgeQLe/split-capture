@@ -23,7 +23,7 @@
 #include <utility/CrashHandler.hpp>
 #include <utility/OBSEventFilter.hpp>
 #include <utility/OBSProxyStyle.hpp>
-#if (defined(_WIN32) && defined(SPLIT_OBS_ENABLE_CUSTOM_UPDATER)) || defined(ENABLE_SPARKLE_UPDATER)
+#if (defined(_WIN32) && defined(SPLIT_CAPTURE_ENABLE_CUSTOM_UPDATER)) || defined(ENABLE_SPARKLE_UPDATER)
 #include <utility/models/branches.hpp>
 #endif
 #include <widgets/OBSBasic.hpp>
@@ -38,7 +38,7 @@
 
 #include <QCheckBox>
 #include <QDesktopServices>
-#if (defined(_WIN32) && defined(SPLIT_OBS_ENABLE_CUSTOM_UPDATER)) || defined(ENABLE_SPARKLE_UPDATER)
+#if (defined(_WIN32) && defined(SPLIT_CAPTURE_ENABLE_CUSTOM_UPDATER)) || defined(ENABLE_SPARKLE_UPDATER)
 #include <QFile>
 #endif
 
@@ -409,21 +409,21 @@ static bool MakeUserDirs()
 {
 	char path[512];
 
-	if (GetAppConfigPath(path, sizeof(path), "obs-studio/basic") <= 0) {
+	if (GetAppConfigPath(path, sizeof(path), "split-capture/basic") <= 0) {
 		return false;
 	}
 	if (!do_mkdir(path)) {
 		return false;
 	}
 
-	if (GetAppConfigPath(path, sizeof(path), "obs-studio/logs") <= 0) {
+	if (GetAppConfigPath(path, sizeof(path), "split-capture/logs") <= 0) {
 		return false;
 	}
 	if (!do_mkdir(path)) {
 		return false;
 	}
 
-	if (GetAppConfigPath(path, sizeof(path), "obs-studio/profiler_data") <= 0) {
+	if (GetAppConfigPath(path, sizeof(path), "split-capture/profiler_data") <= 0) {
 		return false;
 	}
 	if (!do_mkdir(path)) {
@@ -431,7 +431,7 @@ static bool MakeUserDirs()
 	}
 
 #ifdef _WIN32
-	if (GetAppConfigPath(path, sizeof(path), "obs-studio/crashes") <= 0) {
+	if (GetAppConfigPath(path, sizeof(path), "split-capture/crashes") <= 0) {
 		return false;
 	}
 	if (!do_mkdir(path)) {
@@ -439,14 +439,14 @@ static bool MakeUserDirs()
 	}
 #endif
 
-	if (GetAppConfigPath(path, sizeof(path), "obs-studio/updates") <= 0) {
+	if (GetAppConfigPath(path, sizeof(path), "split-capture/updates") <= 0) {
 		return false;
 	}
 	if (!do_mkdir(path)) {
 		return false;
 	}
 
-	if (GetAppConfigPath(path, sizeof(path), "obs-studio/plugin_config") <= 0) {
+	if (GetAppConfigPath(path, sizeof(path), "split-capture/plugin_config") <= 0) {
 		return false;
 	}
 	if (!do_mkdir(path)) {
@@ -456,9 +456,9 @@ static bool MakeUserDirs()
 	return true;
 }
 
-constexpr std::string_view OBSProfileSubDirectory = "obs-studio/basic/profiles";
-constexpr std::string_view OBSScenesSubDirectory = "obs-studio/basic/scenes";
-constexpr std::string_view OBSPluginManagerSubDirectory = "obs-studio/plugin_manager";
+constexpr std::string_view OBSProfileSubDirectory = "split-capture/basic/profiles";
+constexpr std::string_view OBSScenesSubDirectory = "split-capture/basic/scenes";
+constexpr std::string_view OBSPluginManagerSubDirectory = "split-capture/plugin_manager";
 
 static bool MakeUserProfileDirs()
 {
@@ -539,7 +539,7 @@ bool OBSApp::InitGlobalConfig()
 {
 	char path[512];
 
-	int len = GetAppConfigPath(path, sizeof(path), "obs-studio/global.ini");
+	int len = GetAppConfigPath(path, sizeof(path), "split-capture/global.ini");
 	if (len <= 0) {
 		return false;
 	}
@@ -611,7 +611,7 @@ bool OBSApp::InitGlobalConfig()
 
 bool OBSApp::InitUserConfig(std::filesystem::path &userConfigLocation, uint32_t lastVersion)
 {
-	const std::string userConfigFile = userConfigLocation.u8string() + "/obs-studio/user.ini";
+	const std::string userConfigFile = userConfigLocation.u8string() + "/split-capture/user.ini";
 
 	int errorCode = userConfig.Open(userConfigFile.c_str(), CONFIG_OPEN_ALWAYS);
 
@@ -671,8 +671,8 @@ void OBSApp::MigrateLegacySettings(const uint32_t lastVersion)
 	}
 }
 
-static constexpr string_view OBSGlobalIniPath = "/obs-studio/global.ini";
-static constexpr string_view OBSUserIniPath = "/obs-studio/user.ini";
+static constexpr string_view OBSGlobalIniPath = "/split-capture/global.ini";
+static constexpr string_view OBSUserIniPath = "/split-capture/user.ini";
 
 bool OBSApp::MigrateGlobalSettings()
 {
@@ -794,7 +794,7 @@ bool OBSApp::InitLocale()
 	return true;
 }
 
-#if (defined(_WIN32) && defined(SPLIT_OBS_ENABLE_CUSTOM_UPDATER)) || defined(ENABLE_SPARKLE_UPDATER)
+#if (defined(_WIN32) && defined(SPLIT_CAPTURE_ENABLE_CUSTOM_UPDATER)) || defined(ENABLE_SPARKLE_UPDATER)
 void ParseBranchesJson(const std::string &jsonString, vector<UpdateBranch> &out, std::string &error)
 {
 	JsonBranches branches;
@@ -834,7 +834,7 @@ bool LoadBranchesFile(vector<UpdateBranch> &out)
 	string error;
 	string branchesText;
 
-	BPtr<char> branchesFilePath = GetAppConfigPathPtr("obs-studio/updates/branches.json");
+	BPtr<char> branchesFilePath = GetAppConfigPathPtr("split-capture/updates/branches.json");
 
 	QFile branchesFile(branchesFilePath.Get());
 	if (!branchesFile.open(QIODevice::ReadOnly)) {
@@ -861,7 +861,7 @@ fail:
 
 void OBSApp::SetBranchData(const string &data)
 {
-#if (defined(_WIN32) && defined(SPLIT_OBS_ENABLE_CUSTOM_UPDATER)) || defined(ENABLE_SPARKLE_UPDATER)
+#if (defined(_WIN32) && defined(SPLIT_CAPTURE_ENABLE_CUSTOM_UPDATER)) || defined(ENABLE_SPARKLE_UPDATER)
 	string error;
 	vector<UpdateBranch> result;
 
@@ -888,7 +888,7 @@ std::vector<UpdateBranch> OBSApp::GetBranches()
 	/* Always ensure the default branch exists */
 	out.push_back(UpdateBranch{"stable", "", "", true, true});
 
-#if (defined(_WIN32) && defined(SPLIT_OBS_ENABLE_CUSTOM_UPDATER)) || defined(ENABLE_SPARKLE_UPDATER)
+#if (defined(_WIN32) && defined(SPLIT_CAPTURE_ENABLE_CUSTOM_UPDATER)) || defined(ENABLE_SPARKLE_UPDATER)
 	if (!branches_loaded) {
 		vector<UpdateBranch> result;
 		if (LoadBranchesFile(result)) {
@@ -912,6 +912,11 @@ OBSApp::OBSApp(int &argc, char **argv, profiler_name_store_t *store)
 	  profilerNameStore(store),
 	  appLaunchUUID_(QUuid::createUuid())
 {
+	setApplicationName("Split Capture");
+	setApplicationDisplayName("Split Capture");
+	setOrganizationName("GeorgeQLe");
+	setOrganizationDomain("github.com/GeorgeQLe");
+
 	installNativeEventFilter(new OBS::NativeEventFilter);
 
 	/* fix float handling */
@@ -950,13 +955,14 @@ OBSApp::OBSApp(int &argc, char **argv, profiler_name_store_t *store)
 		crashHandler_ = std::make_unique<OBS::CrashHandler>(appLaunchUUID_);
 	}
 
-	sleepInhibitor = os_inhibit_sleep_create("OBS Video/audio");
+	sleepInhibitor = os_inhibit_sleep_create("Split Capture video/audio");
 
 #ifndef __APPLE__
-	setWindowIcon(QIcon::fromTheme("obs", QIcon(":/res/images/obs.png")));
+	setWindowIcon(
+		QIcon::fromTheme("io.github.georgeqle.splitcapture", QIcon(":/res/images/split-capture.png")));
 #endif
 
-	setDesktopFileName("com.obsproject.Studio");
+	setDesktopFileName("io.github.georgeqle.splitcapture");
 
 	pluginManager_ = std::make_unique<OBS::PluginManager>();
 }
@@ -972,7 +978,7 @@ static void move_basic_to_profiles(void)
 {
 	char path[512];
 
-	if (GetAppConfigPath(path, 512, "obs-studio/basic") <= 0) {
+	if (GetAppConfigPath(path, 512, "split-capture/basic") <= 0) {
 		return;
 	}
 
@@ -983,7 +989,7 @@ static void move_basic_to_profiles(void)
 	}
 
 	const std::filesystem::path profilesPath =
-		App()->userProfilesLocation / std::filesystem::u8path("obs-studio/basic/profiles");
+		App()->userProfilesLocation / std::filesystem::u8path("split-capture/basic/profiles");
 
 	if (std::filesystem::exists(profilesPath)) {
 		return;
@@ -1036,7 +1042,7 @@ static void move_basic_to_scene_collections(void)
 {
 	char path[512];
 
-	if (GetAppConfigPath(path, 512, "obs-studio/basic") <= 0) {
+	if (GetAppConfigPath(path, 512, "split-capture/basic") <= 0) {
 		return;
 	}
 
@@ -1047,7 +1053,7 @@ static void move_basic_to_scene_collections(void)
 	}
 
 	const std::filesystem::path sceneCollectionPath =
-		App()->userScenesLocation / std::filesystem::u8path("obs-studio/basic/scenes");
+		App()->userScenesLocation / std::filesystem::u8path("split-capture/basic/scenes");
 
 	if (std::filesystem::exists(sceneCollectionPath)) {
 		return;
@@ -1097,7 +1103,7 @@ void OBSApp::AppInit()
 	config_set_default_string(userConfig, "Basic", "ProfileDir", Str("Untitled"));
 	config_set_default_string(userConfig, "Basic", "SceneCollection", Str("Untitled"));
 	config_set_default_string(userConfig, "Basic", "SceneCollectionFile", Str("Untitled"));
-#ifdef SPLIT_OBS_DISABLE_UPDATER
+#ifdef SPLIT_CAPTURE_DISABLE_UPDATER
 	config_set_default_bool(userConfig, "Basic", "ConfigOnNewProfile", false);
 #else
 	config_set_default_bool(userConfig, "Basic", "ConfigOnNewProfile", true);
@@ -1175,7 +1181,7 @@ static bool StartupOBS(const char *locale, profiler_name_store_t *store)
 {
 	char path[512];
 
-	if (GetAppConfigPath(path, sizeof(path), "obs-studio/plugin_config") <= 0) {
+	if (GetAppConfigPath(path, sizeof(path), "split-capture/plugin_config") <= 0) {
 		return false;
 	}
 
@@ -1368,7 +1374,7 @@ bool OBSApp::IsPortableMode()
 
 bool OBSApp::IsUpdaterDisabled()
 {
-#ifdef SPLIT_OBS_DISABLE_UPDATER
+#ifdef SPLIT_CAPTURE_DISABLE_UPDATER
 	return true;
 #else
 	return opt_disable_updater;
@@ -1429,14 +1435,14 @@ void OBSApp::uploadLastAppLog() const
 {
 	OBSBasic *basicWindow = static_cast<OBSBasic *>(GetMainWindow());
 
-	basicWindow->UploadLog("obs-studio/logs", GetLastLog(), OBS::LogFileType::LastAppLog);
+	basicWindow->UploadLog("split-capture/logs", GetLastLog(), OBS::LogFileType::LastAppLog);
 }
 
 void OBSApp::uploadCurrentAppLog() const
 {
 	OBSBasic *basicWindow = static_cast<OBSBasic *>(GetMainWindow());
 
-	basicWindow->UploadLog("obs-studio/logs", GetCurrentLog(), OBS::LogFileType::CurrentAppLog);
+	basicWindow->UploadLog("split-capture/logs", GetCurrentLog(), OBS::LogFileType::CurrentAppLog);
 }
 
 void OBSApp::uploadLastCrashLog()

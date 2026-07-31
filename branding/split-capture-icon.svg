@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" role="img"
+     aria-labelledby="title description">
+  <title id="title">Split Capture application icon</title>
+  <desc id="description">Two cyan capture frames separating around a coral recording indicator.</desc>
+  <rect x="32" y="32" width="960" height="960" rx="220" fill="#071A2B"/>
+  <rect x="52" y="52" width="920" height="920" rx="204" fill="none"
+        stroke="#123956" stroke-width="8"/>
+
+  <!-- Upper-left output frame. -->
+  <rect x="190" y="218" width="360" height="360" rx="100" fill="#06243A"/>
+  <rect x="190" y="200" width="360" height="360" rx="100" fill="#2DD4F7"/>
+  <rect x="270" y="280" width="200" height="200" rx="38" fill="#071A2B"/>
+
+  <!-- Lower-right output frame, synchronized but visibly offset. -->
+  <rect x="474" y="482" width="360" height="360" rx="100" fill="#06243A"/>
+  <rect x="474" y="464" width="360" height="360" rx="100" fill="#2DD4F7"/>
+  <rect x="554" y="544" width="200" height="200" rx="38" fill="#071A2B"/>
+
+  <!-- The navy seam makes the two capture outputs unambiguously separate. -->
+  <polygon points="421,557 486,427 603,486 538,616" fill="#071A2B"/>
+
+  <circle cx="512" cy="512" r="54" fill="#061827" opacity="0.55"
+          transform="translate(0 14)"/>
+  <circle cx="512" cy="512" r="46" fill="#FF6B5E"/>
+  <circle cx="499" cy="499" r="13" fill="#FF9A91" opacity="0.72"/>
+</svg>

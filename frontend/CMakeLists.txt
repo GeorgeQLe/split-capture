@@ -32,19 +32,16 @@ target_compile_definitions(
   PRIVATE $<$<AND:$<BOOL:${ENABLE_DUAL_CAPTURE_TEST_HOOKS}>,$<CONFIG:Debug>>:ENABLE_DUAL_CAPTURE_TEST_HOOKS>
 )
 
-option(SPLIT_OBS_ENABLE_CUSTOM_UPDATER "Enable the Split OBS product updater" OFF)
-set(SPLIT_OBS_UPDATE_FEED_URL "" CACHE STRING "Signed appcast URL for Split OBS updates")
-set(SPLIT_OBS_UPDATE_PUBLIC_KEY "" CACHE STRING "Ed25519 public key for Split OBS updates")
-mark_as_advanced(SPLIT_OBS_UPDATE_FEED_URL SPLIT_OBS_UPDATE_PUBLIC_KEY)
+include(cmake/split-capture-updater-options.cmake)
 
-if(SPLIT_OBS_ENABLE_CUSTOM_UPDATER AND NOT OS_MACOS)
-  message(FATAL_ERROR "The Split OBS custom updater is currently supported only on macOS")
+if(SPLIT_CAPTURE_ENABLE_CUSTOM_UPDATER AND NOT OS_MACOS)
+  message(FATAL_ERROR "The Split Capture custom updater is currently supported only on macOS")
 endif()
 
-if(SPLIT_OBS_ENABLE_CUSTOM_UPDATER)
-  target_compile_definitions(obs-studio PRIVATE SPLIT_OBS_ENABLE_CUSTOM_UPDATER)
+if(SPLIT_CAPTURE_ENABLE_CUSTOM_UPDATER)
+  target_compile_definitions(obs-studio PRIVATE SPLIT_CAPTURE_ENABLE_CUSTOM_UPDATER)
 else()
-  target_compile_definitions(obs-studio PRIVATE SPLIT_OBS_DISABLE_UPDATER)
+  target_compile_definitions(obs-studio PRIVATE SPLIT_CAPTURE_DISABLE_UPDATER)
 endif()
 
 target_link_libraries(
@@ -132,4 +129,10 @@ source_group(TREE "${CMAKE_CURRENT_SOURCE_DIR}" PREFIX "Source Files" FILES ${ta
 source_group(TREE "${CMAKE_CURRENT_SOURCE_DIR}" PREFIX "Header Files" FILES ${target_hpp_sources})
 source_group(TREE "${CMAKE_CURRENT_SOURCE_DIR}" PREFIX "Qt Files" FILES ${target_qt_sources})
 
-set_target_properties_obs(obs-studio PROPERTIES FOLDER frontend OUTPUT_NAME "$<IF:$<PLATFORM_ID:Windows>,obs64,obs>")
+set_target_properties_obs(
+  obs-studio
+  PROPERTIES
+    FOLDER frontend
+    OUTPUT_NAME
+      "$<IF:$<PLATFORM_ID:Windows>,split-capture,$<IF:$<PLATFORM_ID:Darwin>,Split Capture,split-capture>>"
+)

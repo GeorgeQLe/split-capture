@@ -149,9 +149,10 @@ static void AddExtraModulePaths()
 #if defined(_WIN32)
 	int ret = GetProgramDataPath(base_module_dir, sizeof(base_module_dir), "obs-studio/plugins/%module%");
 #elif defined(__APPLE__)
-	int ret = GetAppConfigPath(base_module_dir, sizeof(base_module_dir), "obs-studio/plugins/%module%.plugin");
+	int ret =
+		GetAppConfigPath(base_module_dir, sizeof(base_module_dir), "split-capture/plugins/%module%.plugin");
 #else
-	int ret = GetAppConfigPath(base_module_dir, sizeof(base_module_dir), "obs-studio/plugins/%module%");
+	int ret = GetAppConfigPath(base_module_dir, sizeof(base_module_dir), "split-capture/plugins/%module%");
 #endif
 
 	if (ret <= 0) {
@@ -172,7 +173,8 @@ static void AddExtraModulePaths()
 
 	/* Legacy User Application Support Search Path */
 	char user_legacy_module_dir[PATH_MAX];
-	GetAppConfigPath(user_legacy_module_dir, sizeof(user_legacy_module_dir), "obs-studio/plugins/%module%");
+	GetAppConfigPath(user_legacy_module_dir, sizeof(user_legacy_module_dir),
+			 "split-capture/plugins/%module%");
 	std::string path_user_legacy = user_legacy_module_dir;
 	obs_add_module_path((path_user_legacy + "/bin").c_str(), (path_user_legacy + "/data").c_str());
 #endif
@@ -464,7 +466,7 @@ OBSBasic::OBSBasic(QWidget *parent) : OBSMainWindow(parent), undo_s(ui), ui(new 
 	installEventFilter(shortcutFilter);
 
 	stringstream name;
-	name << "OBS " << App()->GetVersionString();
+	name << "Split Capture " << App()->GetVersionString();
 	blog(LOG_INFO, "%s", name.str().c_str());
 	blog(LOG_INFO, "---------------------------------");
 
@@ -1299,7 +1301,7 @@ void OBSBasic::OBSInit()
 		config_save_safe(App()->GetUserConfig(), "tmp", nullptr);
 	}
 
-#ifndef SPLIT_OBS_DISABLE_UPDATER
+#ifndef SPLIT_CAPTURE_DISABLE_UPDATER
 	bool has_last_version = config_has_user_value(App()->GetAppConfig(), "General", "LastVersion");
 	if (!first_run && !has_last_version && !Active()) {
 		QMetaObject::invokeMethod(this, "on_autoConfigure_triggered", Qt::QueuedConnection);
@@ -1349,7 +1351,7 @@ void OBSBasic::OBSInit()
 #endif
 #endif
 
-#ifdef SPLIT_OBS_DISABLE_UPDATER
+#ifdef SPLIT_CAPTURE_DISABLE_UPDATER
 	delete ui->actionCheckForUpdates;
 	ui->actionCheckForUpdates = nullptr;
 #ifdef _WIN32
@@ -2160,10 +2162,7 @@ void OBSBasic::UpdateTitleBar()
 	const char *profile = config_get_string(App()->GetUserConfig(), "Basic", "Profile");
 	const char *sceneCollection = config_get_string(App()->GetUserConfig(), "Basic", "SceneCollection");
 
-	name << "OBS ";
-	if (previewProgramMode) {
-		name << "Studio ";
-	}
+	name << "Split Capture ";
 
 	name << App()->GetVersionString(false);
 	if (safe_mode) {
