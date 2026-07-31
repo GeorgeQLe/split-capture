@@ -136,6 +136,10 @@ def validate_public_identifiers() -> None:
         "com.obsproject.obs-studio": ("test/branding/validate-branding.py",),
         "OBS.app": ("test/branding/validate-branding.py",),
         "obs64.exe": ("test/branding/validate-branding.py",),
+        "OBS-Studio-": (
+            ".github/actions/windows-patches/action.yaml",
+            "test/branding/validate-branding.py",
+        ),
         "flathub.org/apps/details/com.obsproject.Studio": (
             "test/branding/validate-branding.py",
         ),
@@ -154,6 +158,7 @@ def validate_public_identifiers() -> None:
         ".py",
         ".rst",
         ".sh",
+        ".toml",
         ".yaml",
     }
     ignored_prefixes = (

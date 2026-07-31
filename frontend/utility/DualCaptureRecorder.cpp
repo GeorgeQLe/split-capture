@@ -110,6 +110,8 @@ OBSSourceAutoRelease DualCaptureRecorder::CreateManagedSource(const DualCaptureD
 		obs_data_set_string(settings, "resolution", "1920x1080");
 		obs_data_set_int(settings, "frame_interval", 333333);
 	}
+#else
+	(void)disableEmbeddedAudio;
 #endif
 
 	return obs_source_create_private(device.sourceId.c_str(), name, settings);

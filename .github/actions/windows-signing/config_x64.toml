@@ -40,8 +40,8 @@ exclude = [
 nsis_script = "bouf/nsis/mp-installer.nsi"
 
 [package.zip]
-name = "OBS-Studio-{version}-x64.zip"
-pdb_name = "OBS-Studio-{version}-pdbs.zip"
+name = "split-capture-{version}-x64.zip"
+pdb_name = "split-capture-{version}-pdbs.zip"
 
 [package.updater]
 skip_sign = true
