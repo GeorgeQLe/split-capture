@@ -39,9 +39,12 @@ can be enabled independently. All AAC tracks are configured for 48 kHz audio at
 ## Session safety
 
 `session.json` is written atomically with `completed: false` before capture
-starts. A clean user stop atomically replaces it with duration, dropped-frame,
-track, codec, device, and error data. A crash therefore leaves recoverable
-Hybrid MP4 files next to an explicitly incomplete manifest.
+starts. A clean user stop or successfully finalized application exit atomically
+replaces it with duration, dropped-frame, track, codec, device, and error data.
+Application exit uses the `application_exit` stop reason. If shutdown cleanup
+exceeds five seconds, the manifest remains incomplete with `shutdown_timeout`.
+A crash therefore leaves recoverable Hybrid MP4 files next to an explicitly
+incomplete manifest.
 
 An initialization failure retains the session directory and diagnostic
 `session.json`, but removes only the newly created `desktop.mp4` and

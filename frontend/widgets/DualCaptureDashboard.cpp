@@ -20,8 +20,11 @@
 #include <QCheckBox>
 #include <QCloseEvent>
 #include <QComboBox>
+#include <QCoreApplication>
 #include <QDir>
+#include <QElapsedTimer>
 #include <QEvent>
+#include <QEventLoop>
 #include <QFileDialog>
 #include <QFileInfo>
 #include <QFormLayout>
@@ -37,6 +40,7 @@
 #include <QScreen>
 #include <QScrollArea>
 #include <QStorageInfo>
+#include <QThread>
 #include <QTimer>
 #include <QVBoxLayout>
 
@@ -378,12 +382,40 @@ DualCaptureDashboard::DualCaptureDashboard(OBSBasic *main_)
 
 DualCaptureDashboard::~DualCaptureDashboard()
 {
-	recorder.Stop("shutdown");
-	ClearPreviews();
-	ClearAudioProbes();
+	Shutdown();
 	if (outputsDisabled) {
 		main->EnableOutputs(true);
 	}
+}
+
+void DualCaptureDashboard::Shutdown(int timeoutMilliseconds)
+{
+	const DualCaptureShutdownAction action = shutdownLifecycle.Begin(recorder.Busy());
+	if (action == DualCaptureShutdownAction::AlreadyShutdown) {
+		return;
+	}
+
+	timer->stop();
+	if (action == DualCaptureShutdownAction::StopAndWait) {
+		recorder.Stop("application_exit");
+		QElapsedTimer elapsed;
+		elapsed.start();
+		while (recorder.Busy() && elapsed.elapsed() < timeoutMilliseconds) {
+			recorder.CheckOutputs();
+			if (!recorder.Busy()) {
+				break;
+			}
+			QCoreApplication::processEvents(QEventLoop::ExcludeUserInputEvents, 10);
+			QThread::msleep(10);
+		}
+		recorder.CheckOutputs();
+	}
+
+	if (shutdownLifecycle.Finish(recorder.Busy()) == DualCaptureShutdownOutcome::TimedOut) {
+		recorder.ShutdownTimedOut();
+	}
+	ClearPreviews();
+	ClearAudioProbes();
 }
 
 void DualCaptureDashboard::PopulateSources()

@@ -593,9 +593,7 @@ OBSBasic::OBSBasic(QWidget *parent) : OBSMainWindow(parent), undo_s(ui), ui(new 
 		[]() { OBSProjector::UpdateMultiviewProjectors(); });
 
 	connect(App(), &OBSApp::StyleChanged, this, [this]() { OnEvent(OBS_FRONTEND_EVENT_THEME_CHANGED); });
-#ifndef __APPLE__
 	connect(App(), &OBSApp::aboutToQuit, this, &OBSBasic::closeWindow);
-#endif
 
 	QActionGroup *actionGroup = new QActionGroup(this);
 	actionGroup->addAction(ui->actionSceneListMode);
@@ -2007,6 +2005,12 @@ void OBSBasic::closeWindow()
 	blog(LOG_INFO, SHUTDOWN_SEPARATOR);
 
 	isClosing_ = true;
+
+	if (dualCaptureDashboard) {
+		dualCaptureDashboard->Shutdown();
+		delete dualCaptureDashboard;
+		dualCaptureDashboard = nullptr;
+	}
 
 	/* While closing, a resize event to OBSQTDisplay could be triggered.
 	 * The graphics thread on macOS dispatches a lambda function to be

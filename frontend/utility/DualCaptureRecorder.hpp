@@ -65,6 +65,7 @@ public:
 	bool Start(const DualCaptureConfig &config, std::string &error);
 	void Stop(const std::string &reason = "user");
 	void CheckOutputs();
+	void ShutdownTimedOut();
 
 	bool Active() const;
 	bool Busy() const;

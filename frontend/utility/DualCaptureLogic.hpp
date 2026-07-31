@@ -177,3 +177,46 @@ inline constexpr std::array<std::string_view, 2> DualCaptureInitializationMediaA
 	"desktop.mp4",
 	"camera.mp4",
 };
+
+enum class DualCaptureShutdownAction {
+	StopAndWait,
+	ReleaseResources,
+	AlreadyShutdown,
+};
+
+enum class DualCaptureShutdownOutcome {
+	Idle,
+	Completed,
+	TimedOut,
+};
+
+class DualCaptureShutdownLifecycle {
+public:
+	constexpr DualCaptureShutdownAction Begin(bool recorderBusy)
+	{
+		if (begun) {
+			return DualCaptureShutdownAction::AlreadyShutdown;
+		}
+		begun = true;
+		wasBusy = recorderBusy;
+		return recorderBusy ? DualCaptureShutdownAction::StopAndWait
+				    : DualCaptureShutdownAction::ReleaseResources;
+	}
+
+	constexpr DualCaptureShutdownOutcome Finish(bool recorderStillBusy) const
+	{
+		if (!wasBusy) {
+			return DualCaptureShutdownOutcome::Idle;
+		}
+		return recorderStillBusy ? DualCaptureShutdownOutcome::TimedOut : DualCaptureShutdownOutcome::Completed;
+	}
+
+private:
+	bool begun = false;
+	bool wasBusy = false;
+};
+
+constexpr bool DualCaptureStopCompletesManifest(std::string_view reason)
+{
+	return reason == "user" || reason == "application_exit";
+}

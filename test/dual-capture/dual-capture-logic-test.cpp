@@ -117,4 +117,30 @@ int main()
 	Check(DualCaptureInitializationMediaArtifacts[0] == "desktop.mp4" &&
 		      DualCaptureInitializationMediaArtifacts[1] == "camera.mp4",
 	      "initialization cleanup must retain session.json and target only newly created media");
+
+	DualCaptureShutdownLifecycle idleShutdown;
+	Check(idleShutdown.Begin(false) == DualCaptureShutdownAction::ReleaseResources,
+	      "idle shutdown must release resources without waiting");
+	Check(idleShutdown.Finish(false) == DualCaptureShutdownOutcome::Idle,
+	      "idle shutdown must report an idle outcome");
+	Check(idleShutdown.Begin(false) == DualCaptureShutdownAction::AlreadyShutdown,
+	      "dashboard shutdown must be idempotent");
+
+	DualCaptureShutdownLifecycle completedShutdown;
+	Check(completedShutdown.Begin(true) == DualCaptureShutdownAction::StopAndWait,
+	      "active shutdown must stop outputs and wait");
+	Check(completedShutdown.Finish(false) == DualCaptureShutdownOutcome::Completed,
+	      "finalized outputs must report successful application-exit completion");
+
+	DualCaptureShutdownLifecycle timedOutShutdown;
+	Check(timedOutShutdown.Begin(true) == DualCaptureShutdownAction::StopAndWait,
+	      "active timeout case must begin by stopping outputs");
+	Check(timedOutShutdown.Finish(true) == DualCaptureShutdownOutcome::TimedOut,
+	      "outputs still busy at the deadline must report a timeout");
+
+	Check(DualCaptureStopCompletesManifest("user"), "user stop must complete the manifest");
+	Check(DualCaptureStopCompletesManifest("application_exit"),
+	      "successful application exit must complete the manifest");
+	Check(!DualCaptureStopCompletesManifest("shutdown_timeout"),
+	      "shutdown timeout must leave the manifest incomplete");
 }

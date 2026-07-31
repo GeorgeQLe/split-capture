@@ -30,6 +30,7 @@ public:
 	~DualCaptureDashboard() override;
 
 	void OpenFocused();
+	void Shutdown(int timeoutMilliseconds = 5000);
 
 protected:
 	void closeEvent(QCloseEvent *event) override;
@@ -61,6 +62,7 @@ private:
 	bool outputsDisabled = false;
 	bool advancedRequested = false;
 	bool screenPermissionRequested = false;
+	DualCaptureShutdownLifecycle shutdownLifecycle;
 
 	struct PreviewState {
 		OBSQTDisplay *display = nullptr;

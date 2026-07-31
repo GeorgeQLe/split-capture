@@ -50,6 +50,10 @@ static QString RouteName(MicRoute route)
 DualCaptureRecorder::~DualCaptureRecorder()
 {
 	Stop("shutdown");
+	CheckOutputs();
+	if (Busy()) {
+		ShutdownTimedOut();
+	}
 }
 
 bool DualCaptureRecorder::SetTestFailpoint(const char *name)
@@ -510,10 +514,16 @@ void DualCaptureRecorder::Stop(const std::string &reason)
 		return;
 	}
 	if (stopping) {
-		return;
+		if (reason != "application_exit") {
+			return;
+		}
+		if (!initializationFailureCleanup && pendingStopReason == "user") {
+			pendingStopReason = reason;
+		}
+	} else {
+		stopping = true;
+		pendingStopReason = reason;
 	}
-	stopping = true;
-	pendingStopReason = reason;
 	const bool force = reason != "user";
 	for (RoleOutput *role : {&desktop, &camera}) {
 		if (!role->output || !obs_output_active(role->output)) {
@@ -528,10 +538,24 @@ void DualCaptureRecorder::Stop(const std::string &reason)
 	CheckOutputs();
 }
 
+void DualCaptureRecorder::ShutdownTimedOut()
+{
+	if (!Busy()) {
+		return;
+	}
+	WriteManifest(false, "shutdown_timeout");
+	blog(LOG_WARNING, "Dual capture session %s cleanup timed out during application shutdown",
+	     sessionId.toUtf8().constData());
+	Clear();
+	initializationFailureCleanup = false;
+	stopping = false;
+	pendingStopReason.clear();
+}
+
 void DualCaptureRecorder::FinishStop()
 {
 	const std::string reason = pendingStopReason.empty() ? "output_error" : pendingStopReason;
-	WriteManifest(reason == "user", reason);
+	WriteManifest(DualCaptureStopCompletesManifest(reason), reason);
 	blog(LOG_INFO, "Dual capture session %s stopped (%s)", sessionId.toUtf8().constData(), reason.c_str());
 	Clear();
 	stopping = false;
