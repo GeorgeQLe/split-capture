@@ -9,6 +9,7 @@ find_program(JQ_EXECUTABLE jq)
 find_program(FFPROBE_EXECUTABLE ffprobe)
 find_program(BASH_EXECUTABLE NAMES bash bash.exe HINTS "$ENV{ProgramFiles}/Git/bin")
 if(JQ_EXECUTABLE AND FFPROBE_EXECUTABLE AND BASH_EXECUTABLE)
+  get_filename_component(FFPROBE_DIRECTORY "${FFPROBE_EXECUTABLE}" DIRECTORY)
   add_test(
     NAME dual-capture-validator-initialization-error
     COMMAND
@@ -17,6 +18,10 @@ if(JQ_EXECUTABLE AND FFPROBE_EXECUTABLE AND BASH_EXECUTABLE)
       "--expect"
       "initialization-error"
       "${CMAKE_CURRENT_SOURCE_DIR}/fixtures/initialization-error"
+  )
+  set_tests_properties(
+    dual-capture-validator-initialization-error
+    PROPERTIES ENVIRONMENT_MODIFICATION "PATH=path_list_prepend:${FFPROBE_DIRECTORY}"
   )
 endif()
 
