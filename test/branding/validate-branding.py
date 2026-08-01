@@ -80,6 +80,8 @@ def validate_metadata() -> None:
     app_exceptions = flatpak_exceptions.get(APP_ID, [])
     if "appid-url-not-reachable" not in app_exceptions:
         fail("Flatpak must allow the permanent splitcapture ID / split-capture repository slug mismatch")
+    if "metainfo-missing-screenshots" not in app_exceptions:
+        fail("Flatpak must defer screenshots until clean first-launch qualification")
 
 
 def validate_icons() -> None:

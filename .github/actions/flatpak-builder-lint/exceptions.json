@@ -4,6 +4,7 @@
     "external-gitmodule-url-found",
     "finish-args-host-filesystem-access",
     "appstream-flathub-manifest-url-not-reachable",
-    "appid-url-not-reachable"
+    "appid-url-not-reachable",
+    "metainfo-missing-screenshots"
   ]
 }
