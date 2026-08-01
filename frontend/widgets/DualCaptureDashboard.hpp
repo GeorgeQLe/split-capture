@@ -52,6 +52,8 @@ private:
 	QProgressBar *microphoneMeter;
 	QProgressBar *systemMeter;
 	QPushButton *browseButton;
+	QPushButton *refreshDevicesButton;
+	QPushButton *fullScreenButton;
 	QPushButton *recordButton;
 	QPushButton *advancedButton;
 	QPushButton *screenPermissionButton;
@@ -62,6 +64,8 @@ private:
 	bool outputsDisabled = false;
 	bool advancedRequested = false;
 	bool screenPermissionRequested = false;
+	bool deviceRefreshPending = false;
+	bool restoreMaximizedAfterFullScreen = false;
 	DualCaptureShutdownLifecycle shutdownLifecycle;
 
 	struct PreviewState {
@@ -81,6 +85,10 @@ private:
 	void LoadSettings();
 	void SaveSettings();
 	void Browse();
+	void RefreshDevices();
+	void ToggleFullScreen();
+	void ExitFullScreen();
+	void UpdateFullScreenButton();
 	void RefreshReadiness();
 	void ToggleRecording();
 	void SetRecordingUi(bool recording);

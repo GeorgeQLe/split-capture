@@ -1,5 +1,14 @@
 # Session history
 
+## 2026-08-01
+
+- Added a coalesced device refresh action that preserves selected devices and waits for asynchronous camera release before rebuilding previews.
+- Delayed post-recording preview recreation to prevent a disconnected DirectShow preview from blocking the next capture.
+- Added native minimize, maximize, and close window controls plus fullscreen button, F11 toggle, and Escape exit behavior.
+- Validation passed for the complete Windows Debug frontend compile target, the warnings-as-errors Dual Capture logic test, qualification finalization fixtures, and Git whitespace checks.
+- Accepted WSL-mounted MSBuild warnings about case-normalized dependency and output paths; direct Qt resource generation and case-correct intermediate directories were used to verify compilation.
+- The initialization-error fixture was skipped because its optional `ffprobe` prerequisite is unavailable in this environment.
+
 ## 2026-07-31
 
 - Suppressed the upstream first-run setup wizard in Split OBS builds.

@@ -32,6 +32,7 @@
 #include <QGuiApplication>
 #include <QGroupBox>
 #include <QHBoxLayout>
+#include <QKeySequence>
 #include <QLabel>
 #include <QLineEdit>
 #include <QMessageBox>
@@ -39,6 +40,8 @@
 #include <QPushButton>
 #include <QScreen>
 #include <QScrollArea>
+#include <QShortcut>
+#include <QSignalBlocker>
 #include <QStorageInfo>
 #include <QThread>
 #include <QTimer>
@@ -181,6 +184,8 @@ DualCaptureDashboard::DualCaptureDashboard(OBSBasic *main_)
 	  microphoneMeter(new QProgressBar(this)),
 	  systemMeter(new QProgressBar(this)),
 	  browseButton(new QPushButton(QTStr("Browse"), this)),
+	  refreshDevicesButton(new QPushButton(QTStr("DualCapture.RefreshDevices"), this)),
+	  fullScreenButton(new QPushButton(QTStr("DualCapture.FullScreen"), this)),
 	  recordButton(new QPushButton(QTStr("DualCapture.Start"), this)),
 	  advancedButton(new QPushButton(QTStr("DualCapture.AdvancedOBS"), this)),
 	  screenPermissionButton(new QPushButton(this)),
@@ -192,6 +197,11 @@ DualCaptureDashboard::DualCaptureDashboard(OBSBasic *main_)
 	setMinimumSize(720, 600);
 	setModal(false);
 	setWindowFlag(Qt::Window, true);
+	setWindowFlag(Qt::WindowTitleHint, true);
+	setWindowFlag(Qt::WindowSystemMenuHint, true);
+	setWindowFlag(Qt::WindowMinimizeButtonHint, true);
+	setWindowFlag(Qt::WindowMaximizeButtonHint, true);
+	setWindowFlag(Qt::WindowCloseButtonHint, true);
 	if (QScreen *screen = QGuiApplication::primaryScreen()) {
 		const QSize available = screen->availableGeometry().size();
 		resize(std::min(900, available.width() - 40), std::min(820, available.height() - 40));
@@ -269,6 +279,8 @@ DualCaptureDashboard::DualCaptureDashboard(OBSBasic *main_)
 
 	auto *buttonLayout = new QHBoxLayout;
 	buttonLayout->addWidget(advancedButton);
+	buttonLayout->addWidget(refreshDevicesButton);
+	buttonLayout->addWidget(fullScreenButton);
 	buttonLayout->addStretch();
 	recordButton->setMinimumHeight(48);
 	recordButton->setMinimumWidth(240);
@@ -278,6 +290,7 @@ DualCaptureDashboard::DualCaptureDashboard(OBSBasic *main_)
 	     {static_cast<QWidget *>(desktopSelector), static_cast<QWidget *>(cameraSelector),
 	      static_cast<QWidget *>(microphoneSelector), static_cast<QWidget *>(routeSelector),
 	      static_cast<QWidget *>(outputPath), static_cast<QWidget *>(browseButton),
+	      static_cast<QWidget *>(refreshDevicesButton), static_cast<QWidget *>(fullScreenButton),
 	      static_cast<QWidget *>(screenPermissionButton), static_cast<QWidget *>(cameraPermissionButton),
 	      static_cast<QWidget *>(microphonePermissionButton)}) {
 		control->setMinimumHeight(28);
@@ -324,6 +337,18 @@ DualCaptureDashboard::DualCaptureDashboard(OBSBasic *main_)
 	});
 	connect(outputPath, &QLineEdit::textChanged, this, [this] { RefreshReadiness(); });
 	connect(browseButton, &QPushButton::clicked, this, [this] { Browse(); });
+	connect(refreshDevicesButton, &QPushButton::clicked, this, [this] { RefreshDevices(); });
+	connect(fullScreenButton, &QPushButton::clicked, this, [this] { ToggleFullScreen(); });
+	auto *fullScreenShortcut = new QShortcut(QKeySequence(Qt::Key_F11), this);
+	fullScreenShortcut->setAutoRepeat(false);
+	connect(fullScreenShortcut, &QShortcut::activated, this, [this] { ToggleFullScreen(); });
+	auto *exitFullScreenShortcut = new QShortcut(QKeySequence(Qt::Key_Escape), this);
+	exitFullScreenShortcut->setAutoRepeat(false);
+	connect(exitFullScreenShortcut, &QShortcut::activated, this, [this] {
+		if (isFullScreen()) {
+			ExitFullScreen();
+		}
+	});
 	connect(recordButton, &QPushButton::clicked, this, [this] { ToggleRecording(); });
 	connect(advancedButton, &QPushButton::clicked, this, [this] {
 		if (recorder.Busy()) {
@@ -502,6 +527,81 @@ void DualCaptureDashboard::Browse()
 	}
 }
 
+void DualCaptureDashboard::RefreshDevices()
+{
+	if (recorder.Busy() || deviceRefreshPending) {
+		return;
+	}
+
+	const std::string desktopId = SelectedDevice(desktopSelector).id;
+	const std::string cameraId = SelectedDevice(cameraSelector).id;
+	const std::string microphoneId = SelectedDevice(microphoneSelector).id;
+
+	deviceRefreshPending = true;
+	refreshDevicesButton->setEnabled(false);
+	recordButton->setEnabled(false);
+	ClearPreviews();
+	ClearAudioProbes();
+	/*
+	 * DirectShow releases camera sources asynchronously. Re-enumerating and
+	 * rebuilding immediately can race the old preview and leave the replacement
+	 * disconnected, so coalesce refresh requests and wait for device release.
+	 */
+	QTimer::singleShot(1000, this, [this, desktopId, cameraId, microphoneId] {
+		deviceRefreshPending = false;
+		if (recorder.Busy()) {
+			return;
+		}
+
+		const QSignalBlocker blockDesktop(desktopSelector);
+		const QSignalBlocker blockCamera(cameraSelector);
+		const QSignalBlocker blockMicrophone(microphoneSelector);
+		desktopSelector->clear();
+		cameraSelector->clear();
+		microphoneSelector->clear();
+		PopulateSources();
+		RestoreSelection(desktopSelector, desktopId.c_str());
+		RestoreSelection(cameraSelector, cameraId.c_str());
+		RestoreSelection(microphoneSelector, microphoneId.c_str());
+
+		refreshDevicesButton->setEnabled(true);
+		RebuildProbes();
+		RefreshReadiness();
+	});
+}
+
+void DualCaptureDashboard::ToggleFullScreen()
+{
+	if (isFullScreen()) {
+		ExitFullScreen();
+		return;
+	}
+
+	restoreMaximizedAfterFullScreen = isMaximized();
+	showFullScreen();
+	UpdateFullScreenButton();
+}
+
+void DualCaptureDashboard::ExitFullScreen()
+{
+	if (!isFullScreen()) {
+		return;
+	}
+
+	if (restoreMaximizedAfterFullScreen) {
+		showMaximized();
+	} else {
+		showNormal();
+	}
+	UpdateFullScreenButton();
+}
+
+void DualCaptureDashboard::UpdateFullScreenButton()
+{
+	fullScreenButton->setText(
+		QTStr(isFullScreen() ? "DualCapture.ExitFullScreen" : "DualCapture.FullScreen"));
+}
+
 void DualCaptureDashboard::RefreshReadiness()
 {
 	if (recorder.Busy()) {
@@ -641,7 +741,8 @@ void DualCaptureDashboard::SetRecordingUi(bool recording)
 	     {static_cast<QWidget *>(desktopSelector), static_cast<QWidget *>(cameraSelector),
 	      static_cast<QWidget *>(microphoneSelector), static_cast<QWidget *>(routeSelector),
 	      static_cast<QWidget *>(desktopAudio), static_cast<QWidget *>(outputPath),
-	      static_cast<QWidget *>(browseButton), static_cast<QWidget *>(advancedButton),
+	      static_cast<QWidget *>(browseButton), static_cast<QWidget *>(refreshDevicesButton),
+	      static_cast<QWidget *>(advancedButton),
 	      static_cast<QWidget *>(screenPermissionButton), static_cast<QWidget *>(cameraPermissionButton),
 	      static_cast<QWidget *>(microphonePermissionButton)}) {
 		widget->setEnabled(!recording);
@@ -655,7 +756,19 @@ void DualCaptureDashboard::UpdateStats()
 	if (!recorder.Busy()) {
 		if (outputsDisabled) {
 			SetRecordingUi(false);
-			RebuildProbes();
+			/*
+			 * DirectShow can retain the camera for a short time after the
+			 * recording source is released. Recreating the preview
+			 * immediately can open a disconnected source that then blocks
+			 * the next capture. Keep Start disabled until the backend has
+			 * had time to finish releasing the device.
+			 */
+			QTimer::singleShot(1000, this, [this] {
+				if (!recorder.Busy()) {
+					RebuildProbes();
+					RefreshReadiness();
+				}
+			});
 			if (!recorder.LastError().empty()) {
 				QMessageBox::critical(this, QTStr("DualCapture.Title"),
 						      QString::fromStdString(recorder.LastError()));
@@ -846,27 +959,20 @@ void DualCaptureDashboard::DrawPreview(void *data, uint32_t width, uint32_t heig
 bool DualCaptureDashboard::event(QEvent *event)
 {
 	if (event->type() == QEvent::WindowActivate && !recorder.Busy()) {
-		const std::string desktopId = SelectedDevice(desktopSelector).id;
-		const std::string cameraId = SelectedDevice(cameraSelector).id;
-		const std::string microphoneId = SelectedDevice(microphoneSelector).id;
-		desktopSelector->blockSignals(true);
-		cameraSelector->blockSignals(true);
-		microphoneSelector->blockSignals(true);
-		desktopSelector->clear();
-		cameraSelector->clear();
-		microphoneSelector->clear();
-		PopulateSources();
-		RestoreSelection(desktopSelector, desktopId.c_str());
-		RestoreSelection(cameraSelector, cameraId.c_str());
-		RestoreSelection(microphoneSelector, microphoneId.c_str());
-		desktopSelector->blockSignals(false);
-		cameraSelector->blockSignals(false);
-		microphoneSelector->blockSignals(false);
-		UpdatePermissionActions();
-		RebuildProbes();
-		RefreshReadiness();
+		RefreshDevices();
 	}
-	return QDialog::event(event);
+	if (event->type() == QEvent::WindowStateChange) {
+		const auto *stateEvent = static_cast<QWindowStateChangeEvent *>(event);
+		if (isFullScreen() && !stateEvent->oldState().testFlag(Qt::WindowFullScreen)) {
+			restoreMaximizedAfterFullScreen =
+				stateEvent->oldState().testFlag(Qt::WindowMaximized);
+		}
+	}
+	const bool handled = QDialog::event(event);
+	if (event->type() == QEvent::WindowStateChange) {
+		UpdateFullScreenButton();
+	}
+	return handled;
 }
 
 void DualCaptureDashboard::OpenFocused()
