@@ -1,5 +1,5 @@
 name: Run bouf Packaging
-description: Generates signed OBS install files
+description: Generates signed Split Capture install files
 inputs:
   gcpWorkloadIdentityProvider:
     description: GCP Identity Provider Pool ID
@@ -15,7 +15,7 @@ inputs:
     required: false
     default: 'stable'
   architecture:
-    description: OBS build architecture
+    description: Split Capture build architecture
     required: false
     default: 'x64'
 

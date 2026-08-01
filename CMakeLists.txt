@@ -37,6 +37,7 @@ add_subdirectory(test/test-input)
 if(ENABLE_DUAL_CAPTURE_TESTS)
   enable_testing()
   add_subdirectory(test/dual-capture)
+  add_subdirectory(test/branding)
 endif()
 
 add_subdirectory(frontend)

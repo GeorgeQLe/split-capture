@@ -1,16 +1,17 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <component type="desktop">
-  <id>com.obsproject.Studio</id>
-  <launchable type="desktop-id">com.obsproject.Studio.desktop</launchable>
+  <id>io.github.georgeqle.splitcapture</id>
+  <launchable type="desktop-id">io.github.georgeqle.splitcapture.desktop</launchable>
   <metadata_license>CC0-1.0</metadata_license>
   <project_license>GPL-2.0-or-later</project_license>
-  <name>OBS Studio</name>
-  <developer id="com.obsproject">
-    <name>OBS Project</name>
+  <name>Split Capture</name>
+  <developer id="io.github.georgeqle">
+    <name>GeorgeQLe</name>
   </developer>
-  <summary>Live stream and record videos</summary>
+  <summary>Synchronized desktop and camera recording</summary>
   <description>
-    <p>Free and open source software for video capturing, recording, and live streaming.</p>
+    <p>Synchronized desktop and camera recording to separate, recoverable files, with a focused workflow that keeps each capture independently usable.</p>
+    <p>Split Capture is based on OBS Studio and preserves its GPL-licensed capture engine and advanced interface.</p>
     <p>Features:</p>
     <ul>
       <li>High performance real time video/audio capturing and mixing. Create scenes made up of multiple sources including window captures, images, text, browser windows, webcams, capture cards and more.</li>
@@ -28,11 +29,9 @@
       <li>Get a high level view of your production using the Multiview. Monitor 8 different scenes and easily cue or transition to any of them with merely a single or double click.</li>
     </ul>
   </description>
-  <url type="homepage">https://obsproject.com</url>
-  <url type="bugtracker">https://github.com/obsproject/obs-studio/issues</url>
-  <url type="donation">https://obsproject.com/contribute</url>
-  <url type="translate">https://crowdin.com/project/obs-studio</url>
-  <url type="vcs-browser">https://github.com/obsproject/obs-studio</url>
+  <url type="homepage">https://github.com/GeorgeQLe/split-capture</url>
+  <url type="bugtracker">https://github.com/GeorgeQLe/split-capture/issues</url>
+  <url type="vcs-browser">https://github.com/GeorgeQLe/split-capture</url>
 
   <recommends>
     <internet>always</internet>
@@ -45,25 +44,18 @@
     <control>touch</control>
   </supports>
 
-  <screenshots>
-    <screenshot type="default">
-      <image>https://obsproject.com/assets/images/OBSDemoApp301Flathub.png</image>
-      <caption>The OBS Studio window showing a card game, the project website, a video, and a purple rectangle</caption>
-    </screenshot>
-  </screenshots>
-
   <branding>
-    <color type="primary">#284cb8</color>
+    <color type="primary">#071A2B</color>
   </branding>
 
   <content_rating type="oars-1.1"/>
 
   <releases>
     <release version="@OBS_VERSION@" date="@APPDATA_RELEASE_DATE@">
-      <url type="details">https://github.com/obsproject/obs-studio/releases/tag/@OBS_VERSION@</url>
+      <url type="details">https://github.com/GeorgeQLe/split-capture/releases/tag/@OBS_VERSION@</url>
     </release>
   </releases>
   <custom>
-    <value key="flathub::manifest">https://github.com/obsproject/obs-studio/blob/@GIT_HASH@/build-aux/</value>
+    <value key="flathub::manifest">https://github.com/GeorgeQLe/split-capture/blob/@GIT_HASH@/build-aux/io.github.georgeqle.splitcapture.json</value>
   </custom>
 </component>

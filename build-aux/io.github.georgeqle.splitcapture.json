@@ -1,9 +1,9 @@
 {
-    "id": "com.obsproject.Studio",
+    "id": "io.github.georgeqle.splitcapture",
     "runtime": "org.freedesktop.Platform",
     "runtime-version": "25.08",
     "sdk": "org.freedesktop.Sdk",
-    "command": "obs",
+    "command": "split-capture",
     "finish-args": [
         "--socket=wayland",
         "--socket=fallback-x11",

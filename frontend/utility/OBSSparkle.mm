@@ -9,11 +9,7 @@ OBSSparkle::OBSSparkle(const char *branch, QAction *checkForUpdatesAction)
         updaterDelegate = [[OBSUpdateDelegate alloc] init];
         updaterDelegate.branch = [NSString stringWithUTF8String:branch];
 
-        if (os_get_emulation_status()) {
-            updaterDelegate.feedUrl = @"https://obsproject.com/osx_update/updates_arm64_v2.xml";
-        } else {
-            updaterDelegate.feedUrl = nil;
-        }
+        updaterDelegate.feedUrl = nil;
 
         updaterDelegate.updaterController =
             [[SPUStandardUpdaterController alloc] initWithStartingUpdater:YES updaterDelegate:updaterDelegate

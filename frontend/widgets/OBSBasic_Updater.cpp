@@ -21,7 +21,7 @@
 
 #include <dialogs/OBSWhatsNew.hpp>
 
-#if defined(_WIN32) && defined(SPLIT_OBS_ENABLE_CUSTOM_UPDATER)
+#if defined(_WIN32) && defined(SPLIT_CAPTURE_ENABLE_CUSTOM_UPDATER)
 #include <utility/AutoUpdateThread.hpp>
 #endif
 #ifdef ENABLE_SPARKLE_UPDATER
@@ -38,7 +38,7 @@
 #endif
 #include <qt-wrappers.hpp>
 
-#if defined(_WIN32) && defined(SPLIT_OBS_ENABLE_CUSTOM_UPDATER)
+#if defined(_WIN32) && defined(SPLIT_CAPTURE_ENABLE_CUSTOM_UPDATER)
 #define UPDATE_CHECK_INTERVAL (60 * 60 * 24 * 4) /* 4 days */
 #endif
 
@@ -182,7 +182,7 @@ void OBSBasic::TimedCheckForUpdates()
 
 #if defined(ENABLE_SPARKLE_UPDATER)
 	CheckForUpdates(false);
-#elif defined(_WIN32) && defined(SPLIT_OBS_ENABLE_CUSTOM_UPDATER)
+#elif defined(_WIN32) && defined(SPLIT_CAPTURE_ENABLE_CUSTOM_UPDATER)
 	long long lastUpdate = config_get_int(App()->GetAppConfig(), "General", "LastUpdateCheck");
 	uint32_t lastVersion = config_get_int(App()->GetAppConfig(), "General", "LastVersion");
 
@@ -202,7 +202,7 @@ void OBSBasic::TimedCheckForUpdates()
 
 void OBSBasic::CheckForUpdates(bool manualUpdate)
 {
-#if defined(_WIN32) && defined(SPLIT_OBS_ENABLE_CUSTOM_UPDATER)
+#if defined(_WIN32) && defined(SPLIT_CAPTURE_ENABLE_CUSTOM_UPDATER)
 	ui->actionCheckForUpdates->setEnabled(false);
 	ui->actionRepair->setEnabled(false);
 

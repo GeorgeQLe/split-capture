@@ -1,5 +1,24 @@
+Split Capture
+=============
+
+**Synchronized desktop and camera recording to separate, recoverable files.**
+
+Split Capture is published by **GeorgeQLe** at
+https://github.com/GeorgeQLe/split-capture. Its focused Dual Capture dashboard
+records native-resolution desktop video and a full-frame camera feed as
+synchronized, independently recoverable files. **Advanced OBS** opens the full
+upstream-derived interface.
+
+Split Capture is based on OBS Studio and remains licensed under the GNU General
+Public License, version 2 or later. Upstream OBS copyright notices, contributor
+credits, APIs, plugin identifiers, internal targets, and compatibility data
+layouts are preserved.
+
+Upstream OBS Studio documentation
+---------------------------------
+
 OBS Studio <https://obsproject.com>
-===================================
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. image:: https://github.com/obsproject/obs-studio/actions/workflows/push.yaml/badge.svg?branch=master
    :alt: OBS Studio Build Status - GitHub Actions

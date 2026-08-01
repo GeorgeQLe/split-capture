@@ -33,10 +33,14 @@ if(NOT DEFINED APPDATA_RELEASE_DATE)
       WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}"
       OUTPUT_STRIP_TRAILING_WHITESPACE
     )
-  elseif(EXISTS "${CMAKE_SOURCE_DIR}/cmake/.CMakeBuildNumber")
-    file(TIMESTAMP "${CMAKE_SOURCE_DIR}/cmake/.CMakeBuildNumber" APPDATA_RELEASE_DATE "%Y-%m-%d")
-  else()
-    file(TIMESTAMP "${CMAKE_SOURCE_DIR}/CMakeLists.txt" APPDATA_RELEASE_DATE "%Y-%m-%d")
+  endif()
+
+  if(APPDATA_RELEASE_DATE STREQUAL "")
+    if(EXISTS "${CMAKE_SOURCE_DIR}/cmake/.CMakeBuildNumber")
+      file(TIMESTAMP "${CMAKE_SOURCE_DIR}/cmake/.CMakeBuildNumber" APPDATA_RELEASE_DATE "%Y-%m-%d")
+    else()
+      file(TIMESTAMP "${CMAKE_SOURCE_DIR}/CMakeLists.txt" APPDATA_RELEASE_DATE "%Y-%m-%d")
+    endif()
   endif()
 endif()
 
@@ -53,35 +57,41 @@ if(NOT DEFINED GIT_HASH)
   endif()
 endif()
 
-configure_file(cmake/linux/com.obsproject.Studio.metainfo.xml.in com.obsproject.Studio.metainfo.xml)
+configure_file(
+  cmake/linux/io.github.georgeqle.splitcapture.metainfo.xml.in
+  io.github.georgeqle.splitcapture.metainfo.xml
+)
 
 install(
-  FILES "${CMAKE_CURRENT_BINARY_DIR}/com.obsproject.Studio.metainfo.xml"
+  FILES "${CMAKE_CURRENT_BINARY_DIR}/io.github.georgeqle.splitcapture.metainfo.xml"
   DESTINATION "${CMAKE_INSTALL_DATAROOTDIR}/metainfo"
 )
 
-install(FILES cmake/linux/com.obsproject.Studio.desktop DESTINATION "${CMAKE_INSTALL_DATAROOTDIR}/applications")
+install(
+  FILES cmake/linux/io.github.georgeqle.splitcapture.desktop
+  DESTINATION "${CMAKE_INSTALL_DATAROOTDIR}/applications"
+)
 
 install(
-  FILES cmake/linux/icons/obs-logo-128.png
+  FILES cmake/linux/icons/split-capture-128.png
   DESTINATION "${CMAKE_INSTALL_DATAROOTDIR}/icons/hicolor/128x128/apps"
-  RENAME com.obsproject.Studio.png
+  RENAME io.github.georgeqle.splitcapture.png
 )
 
 install(
-  FILES cmake/linux/icons/obs-logo-256.png
+  FILES cmake/linux/icons/split-capture-256.png
   DESTINATION "${CMAKE_INSTALL_DATAROOTDIR}/icons/hicolor/256x256/apps"
-  RENAME com.obsproject.Studio.png
+  RENAME io.github.georgeqle.splitcapture.png
 )
 
 install(
-  FILES cmake/linux/icons/obs-logo-512.png
+  FILES cmake/linux/icons/split-capture-512.png
   DESTINATION "${CMAKE_INSTALL_DATAROOTDIR}/icons/hicolor/512x512/apps"
-  RENAME com.obsproject.Studio.png
+  RENAME io.github.georgeqle.splitcapture.png
 )
 
 install(
-  FILES cmake/linux/icons/obs-logo-scalable.svg
+  FILES cmake/linux/icons/split-capture-scalable.svg
   DESTINATION "${CMAKE_INSTALL_DATAROOTDIR}/icons/hicolor/scalable/apps"
-  RENAME com.obsproject.Studio.svg
+  RENAME io.github.georgeqle.splitcapture.svg
 )

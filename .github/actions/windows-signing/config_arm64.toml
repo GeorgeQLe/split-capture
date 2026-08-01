@@ -40,8 +40,8 @@ exclude = [
 skip = true
 
 [package.zip]
-name = "OBS-Studio-{version}-arm64.zip"
-pdb_name = "OBS-Studio-{version}-arm64-pdbs.zip"
+name = "split-capture-{version}-arm64.zip"
+pdb_name = "split-capture-{version}-arm64-pdbs.zip"
 
 [package.updater]
 skip_sign = true

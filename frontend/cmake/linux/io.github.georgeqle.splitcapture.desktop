@@ -1,15 +1,15 @@
 [Desktop Entry]
 Version=1.0
-Name=OBS Studio
-GenericName=Streaming/Recording Software
-Comment=Free and Open Source Streaming/Recording Software
-Exec=obs
-Icon=com.obsproject.Studio
+Name=Split Capture
+GenericName=Synchronized Desktop and Camera Recorder
+Comment=Synchronized desktop and camera recording to separate, recoverable files.
+Exec=split-capture
+Icon=io.github.georgeqle.splitcapture
 Terminal=false
 Type=Application
 Categories=AudioVideo;Recorder;
 StartupNotify=true
-StartupWMClass=obs
+StartupWMClass=split-capture
 
 GenericName[af_ZA]=Stroom-/Opnameprogrammatuur
 Comment[af_ZA]=Gratis en oopbron stroom-/opnameprogrammatuur

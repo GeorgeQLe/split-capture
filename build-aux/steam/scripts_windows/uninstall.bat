@@ -12,8 +12,8 @@ goto checkAdmin
 	)
 
 :clearRegistry
-	reg delete "HKLM\SOFTWARE\OBS Studio" /f /reg:32
-	reg delete "HKLM\SOFTWARE\OBS Studio" /f /reg:64
+	reg delete "HKLM\SOFTWARE\Split Capture" /f /reg:32
+	reg delete "HKLM\SOFTWARE\Split Capture" /f /reg:64
 	:: Vulkan layer keys
 	reg delete "HKLM\SOFTWARE\Khronos\Vulkan\ImplicitLayers" /f /v "%PROGRAMDATA%\obs-studio-hook\obs-vulkan64.json" /reg:32
 	reg delete "HKLM\SOFTWARE\Khronos\Vulkan\ImplicitLayers" /f /v "%PROGRAMDATA%\obs-studio-hook\obs-vulkan32.json" /reg:64
