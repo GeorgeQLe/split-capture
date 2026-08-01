@@ -7,10 +7,12 @@ add_test(NAME dual-capture-logic COMMAND dual-capture-logic-test)
 
 find_program(JQ_EXECUTABLE jq)
 find_program(FFPROBE_EXECUTABLE ffprobe)
-if(JQ_EXECUTABLE AND FFPROBE_EXECUTABLE)
+find_program(BASH_EXECUTABLE NAMES bash bash.exe HINTS "$ENV{ProgramFiles}/Git/bin")
+if(JQ_EXECUTABLE AND FFPROBE_EXECUTABLE AND BASH_EXECUTABLE)
   add_test(
     NAME dual-capture-validator-initialization-error
     COMMAND
+      "${BASH_EXECUTABLE}"
       "${CMAKE_CURRENT_SOURCE_DIR}/validate-session.sh"
       "--expect"
       "initialization-error"
@@ -18,10 +20,11 @@ if(JQ_EXECUTABLE AND FFPROBE_EXECUTABLE)
   )
 endif()
 
-if(JQ_EXECUTABLE)
+if(JQ_EXECUTABLE AND BASH_EXECUTABLE)
   add_test(
     NAME dual-capture-qualification-finalize
     COMMAND
+      "${BASH_EXECUTABLE}"
       "${CMAKE_CURRENT_SOURCE_DIR}/qualification-finalize-test.sh"
       "${CMAKE_CURRENT_SOURCE_DIR}/qualification-runner.sh"
   )
