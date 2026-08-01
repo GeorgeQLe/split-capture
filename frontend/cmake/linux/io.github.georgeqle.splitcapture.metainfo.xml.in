@@ -10,7 +10,7 @@
   </developer>
   <summary>Synchronized desktop and camera recording</summary>
   <description>
-    <p>Synchronized desktop and camera recording to separate, recoverable files.</p>
+    <p>Synchronized desktop and camera recording to separate, recoverable files, with a focused workflow that keeps each capture independently usable.</p>
     <p>Split Capture is based on OBS Studio and preserves its GPL-licensed capture engine and advanced interface.</p>
     <p>Features:</p>
     <ul>
