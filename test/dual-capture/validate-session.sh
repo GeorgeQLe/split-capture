@@ -85,7 +85,7 @@ if (( ${#session_directories[@]} == 0 )); then
   exit 2
 fi
 
-for tool in jq ffprobe awk find shasum; do
+for tool in jq ffprobe awk find; do
   if ! command -v "$tool" >/dev/null 2>&1; then
     echo "error: required tool '$tool' was not found" >&2
     exit 2
@@ -206,7 +206,7 @@ validate_session() {
   local desktop_duration="" camera_duration=""
   for role in desktop camera; do
     media="$session_directory/$role.mp4"
-    probe="$scratch_directory/$(printf '%s' "$session_directory/$role" | shasum | awk '{print $1}').json"
+    probe="$(mktemp "$scratch_directory/probe.XXXXXX")" || exit 2
     if [[ -f "$media" && -s "$media" ]]; then
       pass "$role.mp4 exists and is nonzero"
     else
@@ -247,7 +247,7 @@ validate_session() {
     fi
 
     local packet_times first last duration
-    packet_times="$scratch_directory/$(printf '%s' "$session_directory/$role-packets" | shasum | awk '{print $1}').txt"
+    packet_times="$(mktemp "$scratch_directory/packets.XXXXXX")" || exit 2
     if ffprobe -v error -select_streams v:0 -show_packets \
       -show_entries packet=dts_time -of csv=p=0 "$media" >"$packet_times"; then
       read -r first last < <(
