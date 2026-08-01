@@ -76,6 +76,11 @@ def validate_metadata() -> None:
     if manifest["id"] != APP_ID or manifest["command"] != "split-capture":
         fail("Flatpak identity or command is stale")
 
+    flatpak_exceptions = json.loads(text(".github/actions/flatpak-builder-lint/exceptions.json"))
+    app_exceptions = flatpak_exceptions.get(APP_ID, [])
+    if "appid-url-not-reachable" not in app_exceptions:
+        fail("Flatpak must allow the permanent splitcapture ID / split-capture repository slug mismatch")
+
 
 def validate_icons() -> None:
     mac_directory = ROOT / "frontend/cmake/macos/Assets.xcassets/AppIcon.appiconset"

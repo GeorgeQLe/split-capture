@@ -325,12 +325,31 @@ command_build() {
       -DENABLE_VIRTUALCAM=ON \
       -DSPLIT_CAPTURE_ENABLE_CUSTOM_UPDATER=OFF
     require_qualification_configuration
+    rebuild_browser_helpers
     CODESIGN_IDENT="$identity_name" cmake --build build_macos --config Debug -- -jobs 1 2>&1 |
       redact_routine_signing_output
   )
   command_verify "$canonical_app"
   rmdir "$signing_lock_directory"
   signing_lock_acquired=0
+}
+
+rebuild_browser_helpers() {
+  local project="$repository_root/build_macos/obs-studio.xcodeproj"
+  [[ -d "$project" ]] || die "generated Xcode project is missing: $project"
+
+  echo "Refreshing Chromium helper signatures with the pinned identity."
+  xcodebuild \
+    -project "$project" \
+    -configuration Debug \
+    -hideShellScriptEnvironment \
+    -target browser-helper \
+    -target browser-helper_gpu \
+    -target browser-helper_plugin \
+    -target browser-helper_renderer \
+    -jobs 1 \
+    clean build 2>&1 |
+    redact_routine_signing_output
 }
 
 require_qualification_configuration() {
@@ -376,6 +395,7 @@ case "$command" in
   build)
     [[ $# -eq 1 ]] || die "build takes no arguments"
     require_tool cmake
+    require_tool xcodebuild
     command_build
     ;;
   verify)
