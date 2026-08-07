@@ -1,5 +1,5 @@
 {
-    "id": "io.github.georgeqle.splitcapture",
+    "id": "com.lexcorp.splitcapture",
     "runtime": "org.freedesktop.Platform",
     "runtime-version": "25.08",
     "sdk": "org.freedesktop.Sdk",

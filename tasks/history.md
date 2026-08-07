@@ -1,5 +1,23 @@
 # Session history
 
+## 2026-08-07
+
+- Added the native iPhone Split Capture app for full-display ScreenCaptureKit
+  recording, optional microphone narration, Photos saving, retained local
+  sharing, retry, and state restoration.
+- Added the iOS 27 Xcode project, app artwork, automatic-signing metadata, ten
+  state/persistence tests, an append-only qualification harness, and a
+  physical-device runbook.
+- Migrated the shared Split Capture application ID from
+  `io.github.georgeqle.splitcapture` to `com.lexcorp.splitcapture` across
+  desktop packaging, signing metadata, localized links, and branding checks.
+- Removed the invalid `screen-capture` background mode and flattened the app
+  icon alpha channel after App Store validation feedback; the corrected archive
+  was uploaded.
+- Xcode 27 beta 4 and the iOS 27 SDK were verified. The signing-disabled device
+  build and all ten simulator unit tests passed; physical ScreenCaptureKit
+  qualification remains pending on the dedicated iOS 27 test phone.
+
 ## 2026-08-01
 
 - Added a coalesced device refresh action that preserves selected devices and waits for asynchronous camera release before rebuilding previews.

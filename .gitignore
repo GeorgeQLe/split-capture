@@ -9,11 +9,13 @@
 !/deps
 !/docs
 !/frontend
+!/ios
 !/libobs*
 !/plugins
 !/shared
 !/scripts
 !/test
+!/test-reports
 !.cirrus.xml
 !.clang-format
 !.editorconfig
@@ -50,6 +52,9 @@ build-aux/flatpak-github-action-modified-*
 
 # Exclude macOS legacy resource forks
 .DS_Store
+
+# Exclude Xcode user-specific workspace state
+**/xcuserdata/
 
 # Exclude CMake build number cache
 /cmake/.CMakeBuildNumber

@@ -45,7 +45,7 @@ OBSProjector::OBSProjector(QWidget *widget, obs_source_t *source_, int monitor, 
 	type = type_;
 #ifndef __APPLE__
 	setWindowIcon(
-		QIcon::fromTheme("io.github.georgeqle.splitcapture", QIcon(":/res/images/split-capture.png")));
+		QIcon::fromTheme("com.lexcorp.splitcapture", QIcon(":/res/images/split-capture.png")));
 #endif
 
 	if (monitor == -1) {

@@ -325,7 +325,7 @@ jobs:
 
           git config --global --add safe.directory "${GITHUB_WORKSPACE}"
 
-          cache_key='flatpak-builder-${{ hashFiles('build-aux/io.github.georgeqle.splitcapture.json') }}'
+          cache_key='flatpak-builder-${{ hashFiles('build-aux/com.lexcorp.splitcapture.json') }}'
           cache_ref='master'
           read -r id key size unit created accessed <<< \
             "$(gh cache list --ref "refs/heads/${cache_ref}" --key "${cache_key}-x86_64" | head -1)"
@@ -342,14 +342,14 @@ jobs:
         uses: ./.github/actions/flatpak-builder-lint
         with:
           artifact: manifest
-          path: build-aux/io.github.georgeqle.splitcapture.json
+          path: build-aux/com.lexcorp.splitcapture.json
 
       - name: Build Flatpak Manifest 🧾
         uses: flatpak/flatpak-github-actions/flatpak-builder@401fe28a8384095fc1531b9d320b292f0ee45adb # v6.7
         with:
           build-bundle: ${{ fromJSON(needs.check-event.outputs.package) }}
           bundle: split-capture-flatpak-${{ needs.check-event.outputs.commitHash }}.flatpak
-          manifest-path: ${{ github.workspace }}/build-aux/io.github.georgeqle.splitcapture.json
+          manifest-path: ${{ github.workspace }}/build-aux/com.lexcorp.splitcapture.json
           cache: ${{ fromJSON(steps.setup.outputs.cacheHit) || (github.event_name == 'push' && github.ref_name == 'master')}}
           restore-cache: ${{ fromJSON(steps.setup.outputs.cacheHit) }}
           cache-key: ${{ steps.setup.outputs.cacheKey }}
@@ -359,14 +359,14 @@ jobs:
         uses: ./.github/actions/flatpak-builder-lint
         with:
           artifact: appstream
-          path: ${{ env.FLATPAK_BUILD_SHARE_PATH }}/metainfo/io.github.georgeqle.splitcapture.metainfo.xml
+          path: ${{ env.FLATPAK_BUILD_SHARE_PATH }}/metainfo/com.lexcorp.splitcapture.metainfo.xml
 
       - name: Verify Icon and Metadata in app-info
         working-directory: ${{ env.FLATPAK_BUILD_SHARE_PATH }}
         run: |
           : Verify Icon and Metadata in app-info
-          test -f app-info/icons/flatpak/128x128/io.github.georgeqle.splitcapture.png || { echo "::error::Missing 128x128 icon in app-info"; exit 1; }
-          test -f app-info/xmls/io.github.georgeqle.splitcapture.xml.gz || { echo "::error::Missing io.github.georgeqle.splitcapture.xml.gz in app-info"; exit 1; }
+          test -f app-info/icons/flatpak/128x128/com.lexcorp.splitcapture.png || { echo "::error::Missing 128x128 icon in app-info"; exit 1; }
+          test -f app-info/xmls/com.lexcorp.splitcapture.xml.gz || { echo "::error::Missing com.lexcorp.splitcapture.xml.gz in app-info"; exit 1; }
 
       - name: Validate build directory
         uses: ./.github/actions/flatpak-builder-lint

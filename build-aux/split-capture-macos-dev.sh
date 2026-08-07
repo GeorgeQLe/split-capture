@@ -4,7 +4,7 @@ set -euo pipefail
 umask 077
 
 readonly identity_name='Split Capture Local Development'
-readonly expected_bundle_id='io.github.georgeqle.splitcapture'
+readonly expected_bundle_id='com.lexcorp.splitcapture'
 script_directory="$(cd "$(dirname "$0")" && pwd)"
 readonly script_directory
 repository_root="$(cd "$script_directory/.." && pwd)"

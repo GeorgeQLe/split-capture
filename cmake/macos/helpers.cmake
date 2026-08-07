@@ -54,7 +54,7 @@ function(set_target_properties_obs target)
 
       set_target_xcode_properties(
         ${target}
-        PROPERTIES PRODUCT_BUNDLE_IDENTIFIER io.github.georgeqle.splitcapture
+        PROPERTIES PRODUCT_BUNDLE_IDENTIFIER com.lexcorp.splitcapture
                    PRODUCT_NAME "Split Capture"
                    ASSETCATALOG_COMPILER_APPICON_NAME AppIcon
                    CURRENT_PROJECT_VERSION ${OBS_BUILD_NUMBER}

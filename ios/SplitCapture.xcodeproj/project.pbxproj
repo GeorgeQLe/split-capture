@@ -1,0 +1,420 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 56;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		A10000000000000000000101 /* SplitCaptureApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000201 /* SplitCaptureApp.swift */; };
+		A10000000000000000000102 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000202 /* ContentView.swift */; };
+		A10000000000000000000103 /* Models.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000203 /* Models.swift */; };
+		A10000000000000000000104 /* ScreenCaptureControlling.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000204 /* ScreenCaptureControlling.swift */; };
+		A10000000000000000000105 /* RecordingStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000205 /* RecordingStore.swift */; };
+		A10000000000000000000106 /* PhotosLibrarySaver.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000206 /* PhotosLibrarySaver.swift */; };
+		A10000000000000000000107 /* ScreenCaptureController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000207 /* ScreenCaptureController.swift */; };
+		A10000000000000000000108 /* RecorderViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000208 /* RecorderViewModel.swift */; };
+		A10000000000000000000109 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000209 /* Assets.xcassets */; };
+		A10000000000000000000110 /* RecorderViewModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000210 /* RecorderViewModelTests.swift */; };
+		A10000000000000000000111 /* RecordingStoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000211 /* RecordingStoreTests.swift */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		A10000000000000000000301 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = A10000000000000000000401 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = A10000000000000000000501;
+			remoteInfo = SplitCapture;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXFileReference section */
+		A10000000000000000000201 /* SplitCaptureApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SplitCaptureApp.swift; sourceTree = "<group>"; };
+		A10000000000000000000202 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
+		A10000000000000000000203 /* Models.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Models.swift; sourceTree = "<group>"; };
+		A10000000000000000000204 /* ScreenCaptureControlling.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScreenCaptureControlling.swift; sourceTree = "<group>"; };
+		A10000000000000000000205 /* RecordingStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecordingStore.swift; sourceTree = "<group>"; };
+		A10000000000000000000206 /* PhotosLibrarySaver.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhotosLibrarySaver.swift; sourceTree = "<group>"; };
+		A10000000000000000000207 /* ScreenCaptureController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScreenCaptureController.swift; sourceTree = "<group>"; };
+		A10000000000000000000208 /* RecorderViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecorderViewModel.swift; sourceTree = "<group>"; };
+		A10000000000000000000209 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		A1000000000000000000020A /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		A1000000000000000000020B /* SplitCapture.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = SplitCapture.entitlements; sourceTree = "<group>"; };
+		A10000000000000000000210 /* RecorderViewModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecorderViewModelTests.swift; sourceTree = "<group>"; };
+		A10000000000000000000211 /* RecordingStoreTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecordingStoreTests.swift; sourceTree = "<group>"; };
+		A10000000000000000000220 /* SplitCapture.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = SplitCapture.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		A10000000000000000000221 /* SplitCaptureTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = SplitCaptureTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		A10000000000000000000601 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		A10000000000000000000602 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		A10000000000000000000701 = {
+			isa = PBXGroup;
+			children = (
+				A10000000000000000000702 /* SplitCapture */,
+				A10000000000000000000703 /* SplitCaptureTests */,
+				A10000000000000000000704 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		A10000000000000000000702 /* SplitCapture */ = {
+			isa = PBXGroup;
+			children = (
+				A10000000000000000000201 /* SplitCaptureApp.swift */,
+				A10000000000000000000202 /* ContentView.swift */,
+				A10000000000000000000203 /* Models.swift */,
+				A10000000000000000000204 /* ScreenCaptureControlling.swift */,
+				A10000000000000000000205 /* RecordingStore.swift */,
+				A10000000000000000000206 /* PhotosLibrarySaver.swift */,
+				A10000000000000000000207 /* ScreenCaptureController.swift */,
+				A10000000000000000000208 /* RecorderViewModel.swift */,
+				A10000000000000000000209 /* Assets.xcassets */,
+				A1000000000000000000020A /* Info.plist */,
+				A1000000000000000000020B /* SplitCapture.entitlements */,
+			);
+			path = SplitCapture;
+			sourceTree = "<group>";
+		};
+		A10000000000000000000703 /* SplitCaptureTests */ = {
+			isa = PBXGroup;
+			children = (
+				A10000000000000000000210 /* RecorderViewModelTests.swift */,
+				A10000000000000000000211 /* RecordingStoreTests.swift */,
+			);
+			path = SplitCaptureTests;
+			sourceTree = "<group>";
+		};
+		A10000000000000000000704 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				A10000000000000000000220 /* SplitCapture.app */,
+				A10000000000000000000221 /* SplitCaptureTests.xctest */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		A10000000000000000000501 /* SplitCapture */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = A10000000000000000000801 /* Build configuration list for PBXNativeTarget "SplitCapture" */;
+			buildPhases = (
+				A10000000000000000000901 /* Sources */,
+				A10000000000000000000601 /* Frameworks */,
+				A10000000000000000000A01 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = SplitCapture;
+			productName = SplitCapture;
+			productReference = A10000000000000000000220 /* SplitCapture.app */;
+			productType = "com.apple.product-type.application";
+		};
+		A10000000000000000000502 /* SplitCaptureTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = A10000000000000000000802 /* Build configuration list for PBXNativeTarget "SplitCaptureTests" */;
+			buildPhases = (
+				A10000000000000000000902 /* Sources */,
+				A10000000000000000000602 /* Frameworks */,
+				A10000000000000000000A02 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				A10000000000000000000B01 /* PBXTargetDependency */,
+			);
+			name = SplitCaptureTests;
+			productName = SplitCaptureTests;
+			productReference = A10000000000000000000221 /* SplitCaptureTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		A10000000000000000000401 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = 1;
+				LastSwiftUpdateCheck = 2700;
+				LastUpgradeCheck = 2700;
+				ORGANIZATIONNAME = LexCorp;
+				TargetAttributes = {
+					A10000000000000000000501 = {
+						CreatedOnToolsVersion = 27.0;
+					};
+					A10000000000000000000502 = {
+						CreatedOnToolsVersion = 27.0;
+						TestTargetID = A10000000000000000000501;
+					};
+				};
+			};
+			buildConfigurationList = A10000000000000000000800 /* Build configuration list for PBXProject "SplitCapture" */;
+			compatibilityVersion = "Xcode 14.0";
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = A10000000000000000000701;
+			productRefGroup = A10000000000000000000704 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				A10000000000000000000501 /* SplitCapture */,
+				A10000000000000000000502 /* SplitCaptureTests */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		A10000000000000000000A01 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				A10000000000000000000109 /* Assets.xcassets in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		A10000000000000000000A02 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		A10000000000000000000901 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				A10000000000000000000101 /* SplitCaptureApp.swift in Sources */,
+				A10000000000000000000102 /* ContentView.swift in Sources */,
+				A10000000000000000000103 /* Models.swift in Sources */,
+				A10000000000000000000104 /* ScreenCaptureControlling.swift in Sources */,
+				A10000000000000000000105 /* RecordingStore.swift in Sources */,
+				A10000000000000000000106 /* PhotosLibrarySaver.swift in Sources */,
+				A10000000000000000000107 /* ScreenCaptureController.swift in Sources */,
+				A10000000000000000000108 /* RecorderViewModel.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		A10000000000000000000902 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				A10000000000000000000110 /* RecorderViewModelTests.swift in Sources */,
+				A10000000000000000000111 /* RecordingStoreTests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		A10000000000000000000B01 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = A10000000000000000000501 /* SplitCapture */;
+			targetProxy = A10000000000000000000301 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		A10000000000000000000C01 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				IPHONEOS_DEPLOYMENT_TARGET = 27.0;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = iphoneos;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+			};
+			name = Debug;
+		};
+		A10000000000000000000C02 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_NO_COMMON_BLOCKS = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 27.0;
+				SDKROOT = iphoneos;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+			};
+			name = Release;
+		};
+		A10000000000000000000C03 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CLANG_ENABLE_MODULES = YES;
+				CODE_SIGN_ENTITLEMENTS = SplitCapture/SplitCapture.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = NC56VXK48K;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = SplitCapture/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 27.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.lexcorp.splitcapture;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_STRICT_CONCURRENCY = complete;
+				SWIFT_VERSION = 6.0;
+				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Debug;
+		};
+		A10000000000000000000C04 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CLANG_ENABLE_MODULES = YES;
+				CODE_SIGN_ENTITLEMENTS = SplitCapture/SplitCapture.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = NC56VXK48K;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = SplitCapture/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 27.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.lexcorp.splitcapture;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_STRICT_CONCURRENCY = complete;
+				SWIFT_VERSION = 6.0;
+				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Release;
+		};
+		A10000000000000000000C05 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = NC56VXK48K;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 27.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.lexcorp.splitcapture.tests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_STRICT_CONCURRENCY = complete;
+				SWIFT_VERSION = 6.0;
+				TARGETED_DEVICE_FAMILY = 1;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/SplitCapture.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/SplitCapture";
+			};
+			name = Debug;
+		};
+		A10000000000000000000C06 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = NC56VXK48K;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 27.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.lexcorp.splitcapture.tests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_STRICT_CONCURRENCY = complete;
+				SWIFT_VERSION = 6.0;
+				TARGETED_DEVICE_FAMILY = 1;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/SplitCapture.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/SplitCapture";
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		A10000000000000000000800 /* Build configuration list for PBXProject "SplitCapture" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				A10000000000000000000C01 /* Debug */,
+				A10000000000000000000C02 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		A10000000000000000000801 /* Build configuration list for PBXNativeTarget "SplitCapture" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				A10000000000000000000C03 /* Debug */,
+				A10000000000000000000C04 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		A10000000000000000000802 /* Build configuration list for PBXNativeTarget "SplitCaptureTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				A10000000000000000000C05 /* Debug */,
+				A10000000000000000000C06 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = A10000000000000000000401 /* Project object */;
+}

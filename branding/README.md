@@ -9,7 +9,7 @@ clearly at small sizes and adapts cleanly to macOS, Windows, and Linux.
 
 - Product: **Split Capture**
 - Publisher: **GeorgeQLe**
-- Application ID: `io.github.georgeqle.splitcapture`
+- Application ID: `com.lexcorp.splitcapture`
 - Homepage: <https://github.com/GeorgeQLe/split-capture>
 - Description: Synchronized desktop and camera recording to separate,
   recoverable files.

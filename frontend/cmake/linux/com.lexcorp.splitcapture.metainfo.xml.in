@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <component type="desktop">
-  <id>io.github.georgeqle.splitcapture</id>
-  <launchable type="desktop-id">io.github.georgeqle.splitcapture.desktop</launchable>
+  <id>com.lexcorp.splitcapture</id>
+  <launchable type="desktop-id">com.lexcorp.splitcapture.desktop</launchable>
   <metadata_license>CC0-1.0</metadata_license>
   <project_license>GPL-2.0-or-later</project_license>
   <name>Split Capture</name>
@@ -56,6 +56,6 @@
     </release>
   </releases>
   <custom>
-    <value key="flathub::manifest">https://github.com/GeorgeQLe/split-capture/blob/@GIT_HASH@/build-aux/io.github.georgeqle.splitcapture.json</value>
+    <value key="flathub::manifest">https://github.com/GeorgeQLe/split-capture/blob/@GIT_HASH@/build-aux/com.lexcorp.splitcapture.json</value>
   </custom>
 </component>

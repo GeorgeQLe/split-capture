@@ -79,7 +79,7 @@ be staged for the fresh qualification user.
 
 ## Clean permission-flow evidence
 
-Do not reset TCC. The new `io.github.georgeqle.splitcapture` bundle identifier
+Do not reset TCC. The new `com.lexcorp.splitcapture` bundle identifier
 and `Split Capture Local Development` signing requirement provide a new
 permission identity. Initialize the append-only evidence root before the
 application's first launch, then use that exact first launch for the clean

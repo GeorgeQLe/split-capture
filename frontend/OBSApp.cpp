@@ -959,10 +959,10 @@ OBSApp::OBSApp(int &argc, char **argv, profiler_name_store_t *store)
 
 #ifndef __APPLE__
 	setWindowIcon(
-		QIcon::fromTheme("io.github.georgeqle.splitcapture", QIcon(":/res/images/split-capture.png")));
+		QIcon::fromTheme("com.lexcorp.splitcapture", QIcon(":/res/images/split-capture.png")));
 #endif
 
-	setDesktopFileName("io.github.georgeqle.splitcapture");
+	setDesktopFileName("com.lexcorp.splitcapture");
 
 	pluginManager_ = std::make_unique<OBS::PluginManager>();
 }

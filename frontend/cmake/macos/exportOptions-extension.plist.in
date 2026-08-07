@@ -6,7 +6,7 @@
 	<string>developer-id</string>
 	<key>provisioningProfiles</key>
 	<dict>
-		<key>io.github.georgeqle.splitcapture</key>
+		<key>com.lexcorp.splitcapture</key>
 		<string>${OBS_PROVISIONING_PROFILE}</string>
 	</dict>
 	<key>signingStyle</key>

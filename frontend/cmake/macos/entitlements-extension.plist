@@ -14,7 +14,7 @@
         <true/>
         <key>com.apple.security.application-groups</key>
         <array>
-            <string>$(TeamIdentifierPrefix)io.github.georgeqle.splitcapture</string>
+            <string>$(TeamIdentifierPrefix)com.lexcorp.splitcapture</string>
         </array>
     </dict>
 </plist>

@@ -14,7 +14,7 @@ from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[2]
-APP_ID = "io.github.georgeqle.splitcapture"
+APP_ID = "com.lexcorp.splitcapture"
 PRODUCT = "Split Capture"
 REPOSITORY = "https://github.com/GeorgeQLe/split-capture"
 

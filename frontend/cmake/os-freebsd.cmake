@@ -23,40 +23,40 @@ if(TARGET OBS::python)
 endif()
 
 configure_file(
-  cmake/linux/io.github.georgeqle.splitcapture.metainfo.xml.in
-  io.github.georgeqle.splitcapture.metainfo.xml
+  cmake/linux/com.lexcorp.splitcapture.metainfo.xml.in
+  com.lexcorp.splitcapture.metainfo.xml
 )
 
 install(
-  FILES "${CMAKE_CURRENT_BINARY_DIR}/io.github.georgeqle.splitcapture.metainfo.xml"
+  FILES "${CMAKE_CURRENT_BINARY_DIR}/com.lexcorp.splitcapture.metainfo.xml"
   DESTINATION "${CMAKE_INSTALL_DATAROOTDIR}/metainfo"
 )
 
 install(
-  FILES cmake/linux/io.github.georgeqle.splitcapture.desktop
+  FILES cmake/linux/com.lexcorp.splitcapture.desktop
   DESTINATION "${CMAKE_INSTALL_DATAROOTDIR}/applications"
 )
 
 install(
   FILES cmake/linux/icons/split-capture-128.png
   DESTINATION "${CMAKE_INSTALL_DATAROOTDIR}/icons/hicolor/128x128/apps"
-  RENAME io.github.georgeqle.splitcapture.png
+  RENAME com.lexcorp.splitcapture.png
 )
 
 install(
   FILES cmake/linux/icons/split-capture-256.png
   DESTINATION "${CMAKE_INSTALL_DATAROOTDIR}/icons/hicolor/256x256/apps"
-  RENAME io.github.georgeqle.splitcapture.png
+  RENAME com.lexcorp.splitcapture.png
 )
 
 install(
   FILES cmake/linux/icons/split-capture-512.png
   DESTINATION "${CMAKE_INSTALL_DATAROOTDIR}/icons/hicolor/512x512/apps"
-  RENAME io.github.georgeqle.splitcapture.png
+  RENAME com.lexcorp.splitcapture.png
 )
 
 install(
   FILES cmake/linux/icons/split-capture-scalable.svg
   DESTINATION "${CMAKE_INSTALL_DATAROOTDIR}/icons/hicolor/scalable/apps"
-  RENAME io.github.georgeqle.splitcapture.svg
+  RENAME com.lexcorp.splitcapture.svg
 )

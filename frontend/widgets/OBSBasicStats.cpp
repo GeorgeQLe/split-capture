@@ -174,7 +174,7 @@ OBSBasicStats::OBSBasicStats(QWidget *parent, bool closable)
 	setWindowTitle(QTStr("Basic.Stats"));
 #ifndef __APPLE__
 	setWindowIcon(
-		QIcon::fromTheme("io.github.georgeqle.splitcapture", QIcon(":/res/images/split-capture.png")));
+		QIcon::fromTheme("com.lexcorp.splitcapture", QIcon(":/res/images/split-capture.png")));
 #endif
 
 	setWindowModality(Qt::NonModal);
