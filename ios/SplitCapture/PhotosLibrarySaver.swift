@@ -15,7 +15,10 @@ struct PhotosLibrarySaver: PhotosSaving {
         }
 
         do {
-            try await PHPhotoLibrary.shared().performChanges {
+            // PhotoKit executes this block on its own queue. Marking it Sendable
+            // prevents Swift 6 from inheriting MainActor isolation and trapping
+            // when PhotoKit invokes it off the main actor.
+            try await PHPhotoLibrary.shared().performChanges { @Sendable in
                 let options = PHAssetResourceCreationOptions()
                 // Keep the app-owned copy available to ShareLink after this save.
                 options.shouldMoveFile = false

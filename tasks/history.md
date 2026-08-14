@@ -1,5 +1,13 @@
 # Session history
 
+## 2026-08-14
+
+- Fixed the save-to-Photos crash by making the PhotoKit change closure
+  explicitly sendable, preventing it from inheriting main-actor isolation when
+  PhotoKit invokes it on its own queue.
+- Advanced Split Capture 1.0 to build 2 and rechecked its Release archive
+  configuration, privacy description, and opaque 1024px App Store icon.
+
 ## 2026-08-07
 
 - Added the native iPhone Split Capture app for full-display ScreenCaptureKit

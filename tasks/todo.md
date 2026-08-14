@@ -6,6 +6,8 @@
 
 # Completed this session
 
+- [x] Prevent the Swift 6 actor-isolation crash when PhotoKit saves a completed
+  recording and advance the iOS archive build number to 2.
 - [x] Add the native iOS 27 SwiftUI ScreenCaptureKit recorder, persistent latest
   recording, Photos add-only saving, sharing, and retry flow.
 - [x] Add state-machine and recording-store unit coverage plus the physical
