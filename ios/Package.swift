@@ -17,8 +17,13 @@ let package = Package(
             exclude: [
                 "Assets.xcassets",
                 "ContentView.swift",
+                "DirectCaptureBackend.swift",
                 "Info.plist",
+                "Info-iOS27.plist",
+                "LoomCompositor.swift",
                 "PhotosLibrarySaver.swift",
+                "PresenterTakeController.swift",
+                "PresenterTakeView.swift",
                 "ScreenCaptureController.swift",
                 "SplitCapture.entitlements",
                 "SplitCaptureApp.swift"

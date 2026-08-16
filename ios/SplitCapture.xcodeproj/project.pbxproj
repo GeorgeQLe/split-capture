@@ -18,6 +18,10 @@
 		A10000000000000000000109 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000209 /* Assets.xcassets */; };
 		A10000000000000000000110 /* RecorderViewModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000210 /* RecorderViewModelTests.swift */; };
 		A10000000000000000000111 /* RecordingStoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000211 /* RecordingStoreTests.swift */; };
+		A10000000000000000000112 /* LoomCompositor.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000212 /* LoomCompositor.swift */; };
+		A10000000000000000000113 /* PresenterTakeController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000213 /* PresenterTakeController.swift */; };
+		A10000000000000000000114 /* PresenterTakeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000214 /* PresenterTakeView.swift */; };
+		A10000000000000000000115 /* DirectCaptureBackend.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000215 /* DirectCaptureBackend.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -44,6 +48,12 @@
 		A1000000000000000000020B /* SplitCapture.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = SplitCapture.entitlements; sourceTree = "<group>"; };
 		A10000000000000000000210 /* RecorderViewModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecorderViewModelTests.swift; sourceTree = "<group>"; };
 		A10000000000000000000211 /* RecordingStoreTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecordingStoreTests.swift; sourceTree = "<group>"; };
+		A10000000000000000000212 /* LoomCompositor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoomCompositor.swift; sourceTree = "<group>"; };
+		A10000000000000000000213 /* PresenterTakeController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PresenterTakeController.swift; sourceTree = "<group>"; };
+		A10000000000000000000214 /* PresenterTakeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PresenterTakeView.swift; sourceTree = "<group>"; };
+		A10000000000000000000215 /* DirectCaptureBackend.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DirectCaptureBackend.swift; sourceTree = "<group>"; };
+		A1000000000000000000020C /* Info-iOS27.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "Info-iOS27.plist"; sourceTree = "<group>"; };
+		A1000000000000000000020D /* ExportOptions-AppStore.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "ExportOptions-AppStore.plist"; sourceTree = "<group>"; };
 		A10000000000000000000220 /* SplitCapture.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = SplitCapture.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		A10000000000000000000221 /* SplitCaptureTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = SplitCaptureTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
@@ -71,6 +81,7 @@
 			children = (
 				A10000000000000000000702 /* SplitCapture */,
 				A10000000000000000000703 /* SplitCaptureTests */,
+				A1000000000000000000020D /* ExportOptions-AppStore.plist */,
 				A10000000000000000000704 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -85,9 +96,14 @@
 				A10000000000000000000205 /* RecordingStore.swift */,
 				A10000000000000000000206 /* PhotosLibrarySaver.swift */,
 				A10000000000000000000207 /* ScreenCaptureController.swift */,
+				A10000000000000000000215 /* DirectCaptureBackend.swift */,
 				A10000000000000000000208 /* RecorderViewModel.swift */,
+				A10000000000000000000212 /* LoomCompositor.swift */,
+				A10000000000000000000213 /* PresenterTakeController.swift */,
+				A10000000000000000000214 /* PresenterTakeView.swift */,
 				A10000000000000000000209 /* Assets.xcassets */,
 				A1000000000000000000020A /* Info.plist */,
+				A1000000000000000000020C /* Info-iOS27.plist */,
 				A1000000000000000000020B /* SplitCapture.entitlements */,
 			);
 			path = SplitCapture;
@@ -218,7 +234,11 @@
 				A10000000000000000000105 /* RecordingStore.swift in Sources */,
 				A10000000000000000000106 /* PhotosLibrarySaver.swift in Sources */,
 				A10000000000000000000107 /* ScreenCaptureController.swift in Sources */,
+				A10000000000000000000115 /* DirectCaptureBackend.swift in Sources */,
 				A10000000000000000000108 /* RecorderViewModel.swift in Sources */,
+				A10000000000000000000112 /* LoomCompositor.swift in Sources */,
+				A10000000000000000000113 /* PresenterTakeController.swift in Sources */,
+				A10000000000000000000114 /* PresenterTakeView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -254,7 +274,7 @@
 				GCC_C_LANGUAGE_STANDARD = gnu17;
 				GCC_NO_COMMON_BLOCKS = YES;
 				GCC_OPTIMIZATION_LEVEL = 0;
-				IPHONEOS_DEPLOYMENT_TARGET = 27.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
 				ONLY_ACTIVE_ARCH = YES;
 				SDKROOT = iphoneos;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
@@ -273,7 +293,7 @@
 				ENABLE_NS_ASSERTIONS = NO;
 				GCC_C_LANGUAGE_STANDARD = gnu17;
 				GCC_NO_COMMON_BLOCKS = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 27.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
 				SDKROOT = iphoneos;
 				SWIFT_COMPILATION_MODE = wholemodule;
 				SWIFT_OPTIMIZATION_LEVEL = "-O";
@@ -292,7 +312,9 @@
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = SplitCapture/Info.plist;
-				IPHONEOS_DEPLOYMENT_TARGET = 27.0;
+				"INFOPLIST_FILE[sdk=iphoneos27.*]" = "SplitCapture/Info-iOS27.plist";
+				"INFOPLIST_FILE[sdk=iphonesimulator27.*]" = "SplitCapture/Info-iOS27.plist";
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -304,8 +326,11 @@
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_STRICT_CONCURRENCY = complete;
+				"SWIFT_ACTIVE_COMPILATION_CONDITIONS[sdk=iphoneos27.*]" = "$(inherited) IOS27_DIRECT_CAPTURE";
+				"SWIFT_ACTIVE_COMPILATION_CONDITIONS[sdk=iphonesimulator27.*]" = "$(inherited) IOS27_DIRECT_CAPTURE";
 				SWIFT_VERSION = 6.0;
 				TARGETED_DEVICE_FAMILY = 1;
+				VERSIONING_SYSTEM = "apple-generic";
 			};
 			name = Debug;
 		};
@@ -318,10 +343,12 @@
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 2;
 				DEVELOPMENT_TEAM = NC56VXK48K;
-				ENABLE_PREVIEWS = YES;
+				ENABLE_PREVIEWS = NO;
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = SplitCapture/Info.plist;
-				IPHONEOS_DEPLOYMENT_TARGET = 27.0;
+				"INFOPLIST_FILE[sdk=iphoneos27.*]" = "SplitCapture/Info-iOS27.plist";
+				"INFOPLIST_FILE[sdk=iphonesimulator27.*]" = "SplitCapture/Info-iOS27.plist";
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -333,8 +360,12 @@
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_STRICT_CONCURRENCY = complete;
+				"SWIFT_ACTIVE_COMPILATION_CONDITIONS[sdk=iphoneos27.*]" = "$(inherited) IOS27_DIRECT_CAPTURE";
+				"SWIFT_ACTIVE_COMPILATION_CONDITIONS[sdk=iphonesimulator27.*]" = "$(inherited) IOS27_DIRECT_CAPTURE";
 				SWIFT_VERSION = 6.0;
 				TARGETED_DEVICE_FAMILY = 1;
+				VALIDATE_PRODUCT = YES;
+				VERSIONING_SYSTEM = "apple-generic";
 			};
 			name = Release;
 		};
@@ -345,7 +376,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = NC56VXK48K;
 				GENERATE_INFOPLIST_FILE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 27.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -368,7 +399,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = NC56VXK48K;
 				GENERATE_INFOPLIST_FILE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 27.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",

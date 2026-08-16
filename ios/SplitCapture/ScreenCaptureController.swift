@@ -1,493 +1,240 @@
+@preconcurrency import AVFoundation
 import Combine
 import Foundation
 
-#if canImport(ScreenCaptureKit)
-    import AVFoundation
-    import CoreMedia
-    import OSLog
-    @preconcurrency import ScreenCaptureKit
+@MainActor
+protocol DirectCaptureBackendDelegate: AnyObject {
+    func directCaptureWillStart()
+    func directCaptureDidStart(at date: Date)
+    func directCaptureDidCancel()
+    func directCaptureDidFinish(url: URL, duration: TimeInterval, fileSize: Int64) async
+    func directCaptureDidFail(_ failure: CaptureFailure)
+}
 
-    @MainActor
-    final class ScreenCaptureController: NSObject, ScreenCaptureControlling {
-        @Published private(set) var state: CaptureState = .idle
-        @Published private(set) var latestRecording: RecordingSummary?
-        @Published private(set) var recordingStartedAt: Date?
+@MainActor
+protocol DirectCaptureBackend: AnyObject {
+    var isAvailable: Bool { get }
+    func start() async
+    func stop() async
+    func cleanup() async
+}
 
-        private let picker = SCContentSharingPicker.shared
-        private let store: RecordingStore
-        private let photosSaver: any PhotosSaving
-        private let logger = Logger(
-            subsystem: "com.lexcorp.splitcapture",
-            category: "Capture"
-        )
+@MainActor
+final class ScreenCaptureController: NSObject, ScreenCaptureControlling {
+    @Published private(set) var state: CaptureState = .idle
+    @Published private(set) var project: RecordingProject?
+    @Published private(set) var recordingStartedAt: Date?
 
-        private var callbacks: CaptureCallbacks!
-        private var stream: SCStream?
-        private var recordingOutput: SCRecordingOutput?
-        private var pendingURL: URL?
-        private var microphoneEnabled = false
-        private var finishWaiters: [CheckedContinuation<Void, Never>] = []
-        private var isProcessingFinishedOutput = false
-        private var interruptionObserver: NSObjectProtocol?
+    private let store: RecordingStore
+    private let photosSaver: any PhotosSaving
+    private var directCaptureBackend: (any DirectCaptureBackend)?
 
-        init(
-            store: RecordingStore = RecordingStore(),
-            photosSaver: any PhotosSaving = PhotosLibrarySaver()
-        ) {
-            self.store = store
-            self.photosSaver = photosSaver
-            super.init()
-            callbacks = CaptureCallbacks(owner: self)
-            latestRecording = store.restore()
-            store.cleanupTemporaryRecordings(except: latestRecording?.localURL)
-            observeAudioInterruptions()
-        }
+    var isDirectCaptureAvailable: Bool {
+        directCaptureBackend?.isAvailable == true
+    }
 
-        func start() async {
-            guard state == .idle || isFailed else { return }
-            guard picker.isAvailable else {
-                fail(
-                    "Full-display recording isn’t available on this device.",
-                    suggestion: "Use an iPhone running iOS 27 or later."
-                )
-                return
-            }
+    init(
+        store: RecordingStore = RecordingStore(),
+        photosSaver: any PhotosSaving = PhotosLibrarySaver()
+    ) {
+        self.store = store
+        self.photosSaver = photosSaver
+        super.init()
+        project = store.restore()
+        directCaptureBackend = makeDirectCaptureBackend(delegate: self)
+        store.cleanupTemporaryRecordings(except: retainedURLs)
+    }
 
-            var configuration = SCContentSharingPickerConfiguration()
-            configuration.showsMicrophoneControl = true
-            configuration.showsCameraControl = false
-            picker.defaultConfiguration = configuration
-            picker.add(callbacks)
-            picker.isActive = true
-            state = .presentingPicker
-            picker.present()
-        }
+    func importScreenRecording(from url: URL) async {
+        guard state == .idle || isFailed else { return }
+        state = .importing
+        defer { try? FileManager.default.removeItem(at: url) }
 
-        func stop() async {
-            guard state == .recording else { return }
-            state = .finalizing
-            recordingStartedAt = nil
-
-            await withCheckedContinuation { continuation in
-                finishWaiters.append(continuation)
-                guard let stream, let recordingOutput else {
-                    Task { @MainActor in
-                        await stopStream()
-                        fail("The active recording output couldn’t be found.")
-                        finishWithoutRecording()
-                    }
-                    return
-                }
-                do {
-                    try stream.removeRecordingOutput(recordingOutput)
-                } catch {
-                    logger.error("Unable to remove recording output: \(error)")
-                    salvagePendingRecording(error: error)
-                }
-            }
-        }
-
-        func retrySave() async {
-            guard var summary = latestRecording, summary.photosStatus.canRetry else {
-                return
-            }
-            state = .saving
-            summary.photosStatus = await photosSaver.saveVideo(at: summary.localURL)
-            do {
-                try store.update(summary)
-                latestRecording = summary
-                state = .idle
-            } catch {
-                fail(
-                    "The recording is safe, but its save status couldn’t be updated.",
-                    suggestion: error.localizedDescription
-                )
-            }
-        }
-
-        func cleanup() async {
-            if state == .recording {
-                await stop()
-            }
-            await stopStream()
-            store.cleanupTemporaryRecordings(except: latestRecording?.localURL)
-        }
-
-        fileprivate func pickerDidSelect(filter: SCContentFilter) async {
-            guard state == .presentingPicker else { return }
-            state = .starting
-            microphoneEnabled = filter.isMicrophoneEnabled
-
-            do {
-                if microphoneEnabled {
-                    try activateAudioSession()
-                }
-
-                let configuration = SCStreamConfiguration()
-                configuration.capturesAudio = true
-                let stream = SCStream(
-                    filter: filter,
-                    configuration: configuration,
-                    delegate: callbacks
-                )
-                try stream.addStreamOutput(
-                    callbacks,
-                    type: .screen,
-                    sampleHandlerQueue: .main
-                )
-                if microphoneEnabled {
-                    try stream.addStreamOutput(
-                        callbacks,
-                        type: .microphone,
-                        sampleHandlerQueue: .main
-                    )
-                }
-                try await stream.startCapture()
-                self.stream = stream
-
-                let url = FileManager.default.temporaryDirectory.appendingPathComponent(
-                    "split-capture-\(UUID().uuidString).mp4"
-                )
-                let recordingConfiguration = SCRecordingOutputConfiguration()
-                recordingConfiguration.outputURL = url
-                let output = SCRecordingOutput(
-                    configuration: recordingConfiguration,
-                    delegate: callbacks
-                )
-                try stream.addRecordingOutput(output)
-                recordingOutput = output
-                pendingURL = url
-                recordingStartedAt = Date()
-                state = .recording
-            } catch {
-                await stopStream()
-                fail(
-                    "Recording couldn’t start.",
-                    suggestion: error.localizedDescription
-                )
-            }
-        }
-
-        fileprivate func pickerDidCancel() {
-            guard state == .presentingPicker else { return }
-            deactivatePicker()
+        do {
+            let metadata = try await validateMovie(at: url)
+            project = try store.replaceScreenSource(
+                temporaryURL: url,
+                origin: .photosImport,
+                duration: metadata.duration,
+                fileSize: metadata.fileSize,
+                photosStatus: .alreadyInPhotos,
+                previous: project
+            )
             state = .idle
-        }
-
-        fileprivate func pickerDidFail(error: Error) {
-            guard state == .presentingPicker else { return }
-            deactivatePicker()
-            fail("The capture picker couldn’t open.", suggestion: error.localizedDescription)
-        }
-
-        fileprivate func recordingDidFinish(_ output: SCRecordingOutput) {
-            guard output === recordingOutput, !isProcessingFinishedOutput else { return }
-            isProcessingFinishedOutput = true
-            state = .finalizing
-            let measuredDuration =
-                recordingStartedAt.map {
-                    Date().timeIntervalSince($0)
-                } ?? 0
-            let reportedDuration = output.recordedDuration.seconds
-            let duration =
-                reportedDuration.isFinite && reportedDuration >= 0
-                ? reportedDuration
-                : measuredDuration
-            recordingStartedAt = nil
-
-            Task { @MainActor in
-                await finishRecording(
-                    duration: duration,
-                    fileSize: Int64(output.recordedFileSize)
-                )
-            }
-        }
-
-        fileprivate func recordingDidFail(_ output: SCRecordingOutput, error: Error) {
-            guard output === recordingOutput else { return }
-            salvagePendingRecording(error: error)
-        }
-
-        fileprivate func streamDidStop(_ stoppedStream: SCStream, error: Error) {
-            guard stoppedStream === stream else { return }
-            logger.error("Capture stream stopped: \(error)")
-            recordingStartedAt = nil
-
-            if recordingOutput == nil {
-                Task { @MainActor in
-                    await stopStream()
-                    fail("Screen capture stopped.", suggestion: error.localizedDescription)
-                }
-            } else if state == .recording {
-                state = .finalizing
-                // SCRecordingOutput normally calls its completion delegate after a system stop.
-                // If it reports a failure instead, that callback attempts to salvage a valid MP4.
-                Task { @MainActor [weak self] in
-                    try? await Task.sleep(for: .seconds(2))
-                    guard let self, self.state == .finalizing,
-                        !self.isProcessingFinishedOutput
-                    else { return }
-                    self.salvagePendingRecording(error: error)
-                }
-            }
-        }
-
-        private var isFailed: Bool {
-            if case .failed = state { true } else { false }
-        }
-
-        private func finishRecording(duration: TimeInterval, fileSize: Int64) async {
-            defer {
-                recordingOutput = nil
-                pendingURL = nil
-                isProcessingFinishedOutput = false
-                resumeFinishWaiters()
-            }
-
-            guard let pendingURL else {
-                await stopStream()
-                fail("The completed recording file couldn’t be found.")
-                return
-            }
-
-            do {
-                let actualSize =
-                    (try? pendingURL.resourceValues(
-                        forKeys: [.fileSizeKey]
-                    ).fileSize).map(Int64.init) ?? fileSize
-                var summary = try store.promote(
-                    temporaryURL: pendingURL,
-                    duration: max(duration, 0),
-                    fileSize: max(actualSize, fileSize),
-                    previous: latestRecording
-                )
-                latestRecording = summary
-                await stopStream()
-
-                state = .saving
-                summary.photosStatus = await photosSaver.saveVideo(at: summary.localURL)
-                try store.update(summary)
-                latestRecording = summary
-                state = .idle
-            } catch {
-                await stopStream()
-                fail(
-                    "The recording couldn’t be finalized.",
-                    suggestion: error.localizedDescription
-                )
-            }
-        }
-
-        private func salvagePendingRecording(error: Error) {
-            guard
-                let pendingURL,
-                let values = try? pendingURL.resourceValues(forKeys: [.fileSizeKey]),
-                let size = values.fileSize,
-                size > 0
-            else {
-                Task { @MainActor in
-                    await stopStream()
-                    fail("Recording stopped before a valid file was produced.", suggestion: error.localizedDescription)
-                    finishWithoutRecording()
-                }
-                return
-            }
-
-            isProcessingFinishedOutput = true
-            Task { @MainActor in
-                let elapsed = recordingStartedAt.map { Date().timeIntervalSince($0) } ?? 0
-                await finishRecording(duration: elapsed, fileSize: Int64(size))
-            }
-        }
-
-        private func finishWithoutRecording() {
-            recordingOutput = nil
-            pendingURL = nil
-            recordingStartedAt = nil
-            resumeFinishWaiters()
-        }
-
-        private func resumeFinishWaiters() {
-            let waiters = finishWaiters
-            finishWaiters.removeAll()
-            for waiter in waiters {
-                waiter.resume()
-            }
-        }
-
-        private func stopStream() async {
-            if let stream {
-                try? await stream.stopCapture()
-            }
-            stream = nil
-            deactivatePicker()
-            if microphoneEnabled {
-                try? AVAudioSession.sharedInstance().setActive(
-                    false,
-                    options: .notifyOthersOnDeactivation
-                )
-            }
-            microphoneEnabled = false
-        }
-
-        private func deactivatePicker() {
-            picker.isActive = false
-            picker.remove(callbacks)
-        }
-
-        private func activateAudioSession() throws {
-            let session = AVAudioSession.sharedInstance()
-            try session.setCategory(
-                .playAndRecord,
-                mode: .videoRecording,
-                options: [.mixWithOthers, .allowBluetoothHFP]
-            )
-            try session.setActive(true)
-        }
-
-        private func observeAudioInterruptions() {
-            interruptionObserver = NotificationCenter.default.addObserver(
-                forName: AVAudioSession.didBecomeInactiveNotification,
-                object: AVAudioSession.sharedInstance(),
-                queue: .main
-            ) { [weak self] _ in
-                Task { @MainActor [weak self] in
-                    await self?.stop()
-                }
-            }
-        }
-
-        private func fail(_ message: String, suggestion: String? = nil) {
-            state = .failed(
-                CaptureFailure(message, recoverySuggestion: suggestion)
+        } catch {
+            fail(
+                "That video couldn’t be imported.",
+                suggestion: error.localizedDescription
             )
         }
     }
 
-    private final class CaptureCallbacks: NSObject,
-        SCContentSharingPickerObserver,
-        SCRecordingOutputDelegate,
-        SCStreamDelegate,
-        SCStreamOutput,
-        @unchecked Sendable
-    {
-
-        private weak var owner: ScreenCaptureController?
-
-        init(owner: ScreenCaptureController) {
-            self.owner = owner
-        }
-
-        nonisolated func contentSharingPicker(
-            _ picker: SCContentSharingPicker,
-            didUpdateWith filter: SCContentFilter,
-            for stream: SCStream?
-        ) {
-            Task { @MainActor [weak owner] in
-                await owner?.pickerDidSelect(filter: filter)
-            }
-        }
-
-        nonisolated func contentSharingPicker(
-            _ picker: SCContentSharingPicker,
-            didCancelFor stream: SCStream?
-        ) {
-            Task { @MainActor [weak owner] in
-                owner?.pickerDidCancel()
-            }
-        }
-
-        nonisolated func contentSharingPickerStartDidFailWithError(_ error: Error) {
-            Task { @MainActor [weak owner] in
-                owner?.pickerDidFail(error: error)
-            }
-        }
-
-        nonisolated func recordingOutputDidStartRecording(_ recordingOutput: SCRecordingOutput) {}
-
-        nonisolated func recordingOutputDidFinishRecording(_ recordingOutput: SCRecordingOutput) {
-            Task { @MainActor [weak owner] in
-                owner?.recordingDidFinish(recordingOutput)
-            }
-        }
-
-        nonisolated func recordingOutput(
-            _ recordingOutput: SCRecordingOutput,
-            didFailWithError error: Error
-        ) {
-            Task { @MainActor [weak owner] in
-                owner?.recordingDidFail(recordingOutput, error: error)
-            }
-        }
-
-        nonisolated func stream(
-            _ stream: SCStream,
-            didStopWithError error: Error
-        ) {
-            Task { @MainActor [weak owner] in
-                owner?.streamDidStop(stream, error: error)
-            }
-        }
-
-        nonisolated func stream(
-            _ stream: SCStream,
-            didOutputSampleBuffer sampleBuffer: CMSampleBuffer,
-            of type: SCStreamOutputType
-        ) {}
+    func reportImportFailure(_ error: Error) {
+        guard state == .idle || isFailed else { return }
+        fail("That video couldn’t be imported.", suggestion: error.localizedDescription)
     }
-#else
-    @MainActor
-    final class ScreenCaptureController: NSObject, ScreenCaptureControlling {
-        @Published private(set) var state: CaptureState = .idle
-        @Published private(set) var latestRecording: RecordingSummary?
-        @Published private(set) var recordingStartedAt: Date?
 
-        private let store: RecordingStore
-        private let photosSaver: any PhotosSaving
+    func start() async {
+        guard state == .idle || isFailed else { return }
+        guard let directCaptureBackend, directCaptureBackend.isAvailable else {
+            fail(
+                "Direct full-display recording isn’t available in this build.",
+                suggestion: "Import an existing screen recording from Photos instead."
+            )
+            return
+        }
+        state = .presentingPicker
+        await directCaptureBackend.start()
+    }
 
-        init(
-            store: RecordingStore = RecordingStore(),
-            photosSaver: any PhotosSaving = PhotosLibrarySaver()
-        ) {
-            self.store = store
-            self.photosSaver = photosSaver
-            super.init()
-            latestRecording = store.restore()
+    func stop() async {
+        guard state == .recording else { return }
+        state = .finalizing
+        recordingStartedAt = nil
+        await directCaptureBackend?.stop()
+    }
+
+    func retrySave() async {
+        guard var project else { return }
+        let targetIsComposite = project.composite != nil
+        var asset = project.activeShareAsset
+        guard asset.photosStatus.canRetry else { return }
+
+        state = .saving
+        asset.photosStatus = await photosSaver.saveVideo(at: asset.localURL)
+        if targetIsComposite {
+            project.composite = asset
+        } else {
+            project.screenSource = asset
         }
 
-        func start() async {
-            state = .failed(
-                CaptureFailure(
-                    "Full-display recording requires a physical iPhone.",
-                    recoverySuggestion: "Run Split Capture on an iPhone with iOS 27 or later."
-                )
+        do {
+            try store.update(project)
+            self.project = project
+            state = .idle
+        } catch {
+            fail(
+                "The video is safe, but its save status couldn’t be updated.",
+                suggestion: error.localizedDescription
             )
         }
+    }
 
-        func stop() async {}
+    func adoptComposedRecording(at url: URL, duration: TimeInterval) async throws {
+        guard state == .idle || isFailed, let project else {
+            throw CaptureFailure("The retained screen recording could not be found.")
+        }
+        state = .saving
+        do {
+            let values = try url.resourceValues(forKeys: [.fileSizeKey])
+            var updated = try store.replaceComposite(
+                temporaryURL: url,
+                duration: duration,
+                fileSize: Int64(values.fileSize ?? 0),
+                in: project
+            )
+            self.project = updated
 
-        func retrySave() async {
-            guard var summary = latestRecording, summary.photosStatus.canRetry else {
-                return
+            guard var composite = updated.composite else {
+                throw CaptureFailure("The finished picture-in-picture video could not be found.")
             }
+            composite.photosStatus = await photosSaver.saveVideo(at: composite.localURL)
+            updated.composite = composite
+            try store.update(updated)
+            self.project = updated
+            state = .idle
+        } catch {
+            state = .idle
+            throw error
+        }
+    }
+
+    func cleanup() async {
+        if state == .recording {
+            await stop()
+        }
+        await directCaptureBackend?.cleanup()
+        store.cleanupTemporaryRecordings(except: retainedURLs)
+    }
+
+    private var isFailed: Bool {
+        if case .failed = state { true } else { false }
+    }
+
+    private var retainedURLs: Set<URL> {
+        guard let project else { return [] }
+        return Set([project.screenSource.localURL, project.composite?.localURL].compactMap { $0 })
+    }
+
+    private func validateMovie(at url: URL) async throws -> (duration: TimeInterval, fileSize: Int64) {
+        let asset = AVURLAsset(url: url)
+        let tracks = try await asset.loadTracks(withMediaType: .video)
+        let playable = try await asset.load(.isPlayable)
+        let duration = try await asset.load(.duration).seconds
+        let size = try url.resourceValues(forKeys: [.fileSizeKey]).fileSize ?? 0
+        guard !tracks.isEmpty, playable, duration.isFinite, duration > 0, size > 0 else {
+            throw CaptureFailure(
+                "The selected item is not a playable movie with a video track."
+            )
+        }
+        return (duration, Int64(size))
+    }
+
+    private func finishDirectCapture(url: URL, duration _: TimeInterval, fileSize: Int64) async {
+        defer { try? FileManager.default.removeItem(at: url) }
+        do {
+            let metadata = try await validateMovie(at: url)
+            var updated = try store.replaceScreenSource(
+                temporaryURL: url,
+                origin: .directCapture,
+                duration: metadata.duration,
+                fileSize: max(fileSize, metadata.fileSize),
+                photosStatus: .failed("Not saved yet"),
+                previous: project
+            )
+            project = updated
+
             state = .saving
-            summary.photosStatus = await photosSaver.saveVideo(at: summary.localURL)
-            do {
-                try store.update(summary)
-                latestRecording = summary
-                state = .idle
-            } catch {
-                state = .failed(
-                    CaptureFailure(
-                        "The recording is safe, but its save status couldn’t be updated.",
-                        recoverySuggestion: error.localizedDescription
-                    )
-                )
-            }
-        }
-
-        func cleanup() async {
-            store.cleanupTemporaryRecordings(except: latestRecording?.localURL)
+            var screenSource = updated.screenSource
+            screenSource.photosStatus = await photosSaver.saveVideo(at: screenSource.localURL)
+            updated.screenSource = screenSource
+            try store.update(updated)
+            project = updated
+            state = .idle
+        } catch {
+            fail("The screen recording couldn’t be finalized.", suggestion: error.localizedDescription)
         }
     }
-#endif
+
+    private func fail(_ message: String, suggestion: String? = nil) {
+        recordingStartedAt = nil
+        state = .failed(CaptureFailure(message, recoverySuggestion: suggestion))
+    }
+}
+
+extension ScreenCaptureController: DirectCaptureBackendDelegate {
+    func directCaptureWillStart() {
+        guard state == .presentingPicker else { return }
+        state = .starting
+    }
+
+    func directCaptureDidStart(at date: Date) {
+        recordingStartedAt = date
+        state = .recording
+    }
+
+    func directCaptureDidCancel() {
+        guard state == .presentingPicker else { return }
+        state = .idle
+    }
+
+    func directCaptureDidFinish(url: URL, duration: TimeInterval, fileSize: Int64) async {
+        recordingStartedAt = nil
+        state = .finalizing
+        await finishDirectCapture(url: url, duration: duration, fileSize: fileSize)
+    }
+
+    func directCaptureDidFail(_ failure: CaptureFailure) {
+        fail(failure.message, suggestion: failure.recoverySuggestion)
+    }
+}

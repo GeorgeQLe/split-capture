@@ -5,194 +5,186 @@ import XCTest
 
 @MainActor
 final class RecorderViewModelTests: XCTestCase {
-    func testPickerCancellationReturnsToIdleWithoutRecording() async {
+    func testImportBecomesRetainedSourceAndActiveShareAsset() async {
         let fake = FakeCaptureController()
         let viewModel = RecorderViewModel(controller: fake)
+        let url = temporaryURL("import.mov")
 
-        await viewModel.primaryAction()
-        XCTAssertEqual(fake.state, .presentingPicker)
+        await viewModel.importScreenRecording(from: url)
 
-        fake.cancelPicker()
-        XCTAssertEqual(viewModel.state, .idle)
-        XCTAssertNil(viewModel.latestRecording)
+        XCTAssertEqual(viewModel.project?.origin, .photosImport)
+        XCTAssertEqual(viewModel.screenSource?.localURL, url)
+        XCTAssertEqual(viewModel.activeShareAsset, viewModel.screenSource)
+        XCTAssertEqual(viewModel.activeShareAsset?.photosStatus, .alreadyInPhotos)
     }
 
-    func testNormalRecordingCanStartAndStop() async {
-        let fake = FakeCaptureController()
+    func testDirectCaptureAvailabilityIsExposed() {
+        let unavailable = RecorderViewModel(controller: FakeCaptureController(directCapture: false))
+        let available = RecorderViewModel(controller: FakeCaptureController(directCapture: true))
+        XCTAssertFalse(unavailable.isDirectCaptureAvailable)
+        XCTAssertTrue(available.isDirectCaptureAvailable)
+    }
+
+    func testDirectCaptureCanStartAndStop() async {
+        let fake = FakeCaptureController(directCapture: true)
         let viewModel = RecorderViewModel(controller: fake)
 
-        await viewModel.primaryAction()
-        fake.acceptPicker()
+        await viewModel.directCaptureAction()
         XCTAssertEqual(viewModel.state, .recording)
+        await viewModel.directCaptureAction()
 
-        await viewModel.primaryAction()
         XCTAssertEqual(viewModel.state, .idle)
-        XCTAssertNotNil(viewModel.latestRecording)
-    }
-
-    func testDuplicateStartAndStopActionsAreRejected() async {
-        let fake = FakeCaptureController()
-        await fake.start()
-        await fake.start()
+        XCTAssertEqual(viewModel.project?.origin, .directCapture)
         XCTAssertEqual(fake.startCount, 1)
-
-        fake.acceptPicker()
-        await fake.stop()
-        await fake.stop()
         XCTAssertEqual(fake.stopCount, 1)
     }
 
-    func testAppAndSystemStopsBothFinalize() async {
-        let appStop = FakeCaptureController()
-        let appViewModel = RecorderViewModel(controller: appStop)
-        await appViewModel.primaryAction()
-        appStop.acceptPicker()
-        await appViewModel.primaryAction()
-        XCTAssertNotNil(appStop.latestRecording)
-
-        let systemStop = FakeCaptureController()
-        await systemStop.start()
-        systemStop.acceptPicker()
-        systemStop.systemStop()
-        XCTAssertEqual(systemStop.state, .idle)
-        XCTAssertNotNil(systemStop.latestRecording)
-    }
-
-    func testStreamFailureDoesNotLeaveRecordingStateStuck() async {
-        let fake = FakeCaptureController()
-        await fake.start()
-        fake.acceptPicker()
-
-        fake.streamFailure()
-
-        guard case .failed = fake.state else {
-            return XCTFail("Expected a recoverable failure")
-        }
-        XCTAssertNil(fake.recordingStartedAt)
-    }
-
-    func testPhotosDenialCanBeRetried() async {
-        let fake = FakeCaptureController()
-        fake.nextPhotosStatus = .denied
-        await fake.start()
-        fake.acceptPicker()
-        await fake.stop()
-        XCTAssertEqual(fake.latestRecording?.photosStatus, .denied)
-
-        fake.nextPhotosStatus = .saved
+    func testPresenterResultReplacesCompositeWithoutReplacingSource() async throws {
+        let source = RecordingAsset.fixture(url: temporaryURL("source.mp4"))
+        let fake = FakeCaptureController(restored: .fixture(screenSource: source))
         let viewModel = RecorderViewModel(controller: fake)
+        let compositeURL = temporaryURL("composite.mp4")
+
+        try await viewModel.adoptComposedRecording(
+            CompositionResult(url: compositeURL, duration: 12)
+        )
+
+        XCTAssertEqual(viewModel.screenSource, source)
+        XCTAssertEqual(viewModel.activeShareAsset?.localURL, compositeURL)
+        XCTAssertEqual(viewModel.activeShareAsset?.duration, 12)
+    }
+
+    func testRetryTargetsCompositeWhenPresent() async {
+        var project = RecordingProject.fixture()
+        var composite = RecordingAsset.fixture(url: temporaryURL("retry.mp4"))
+        composite.photosStatus = .denied
+        project.composite = composite
+        let fake = FakeCaptureController(restored: project)
+        let viewModel = RecorderViewModel(controller: fake)
+
         await viewModel.retrySave()
-        XCTAssertEqual(fake.latestRecording?.photosStatus, .saved)
+
+        XCTAssertEqual(viewModel.activeShareAsset?.photosStatus, .saved)
         XCTAssertEqual(fake.retryCount, 1)
+        XCTAssertEqual(viewModel.screenSource, project.screenSource)
     }
 
-    func testNewRecordingReplacesPreviousSummary() async {
-        let fake = FakeCaptureController()
-        await fake.start()
-        fake.acceptPicker()
-        await fake.stop()
-        let firstID = fake.latestRecording?.id
+    func testImportFailureUsesCaptureFailureStateAndKeepsProject() {
+        let project = RecordingProject.fixture()
+        let fake = FakeCaptureController(restored: project)
+        let viewModel = RecorderViewModel(controller: fake)
 
-        await fake.start()
-        fake.acceptPicker()
-        await fake.stop()
+        viewModel.reportImportFailure(CaptureFailure("copy interrupted"))
 
-        XCTAssertNotEqual(fake.latestRecording?.id, firstID)
+        guard case .failed(let failure) = viewModel.state else {
+            return XCTFail("Expected import failure state")
+        }
+        XCTAssertEqual(failure.message, "Import failed")
+        XCTAssertEqual(viewModel.project, project)
     }
 
-    func testLatestRecordingIsAvailableAfterRelaunch() {
-        let restored = FakeCaptureController(restored: .fixture())
-        let viewModel = RecorderViewModel(controller: restored)
-
-        XCTAssertEqual(viewModel.latestRecording?.duration, 15)
-        XCTAssertEqual(viewModel.latestRecording?.photosStatus, .saved)
+    private func temporaryURL(_ name: String) -> URL {
+        FileManager.default.temporaryDirectory
+            .appendingPathComponent("\(UUID().uuidString)-\(name)")
     }
 }
 
 @MainActor
 private final class FakeCaptureController: ScreenCaptureControlling {
     @Published private(set) var state: CaptureState = .idle
-    @Published private(set) var latestRecording: RecordingSummary?
+    @Published private(set) var project: RecordingProject?
     @Published private(set) var recordingStartedAt: Date?
+    let isDirectCaptureAvailable: Bool
 
     var startCount = 0
     var stopCount = 0
     var retryCount = 0
-    var nextPhotosStatus: PhotosStatus = .saved
 
-    init(restored: RecordingSummary? = nil) {
-        latestRecording = restored
+    init(restored: RecordingProject? = nil, directCapture: Bool = false) {
+        project = restored
+        isDirectCaptureAvailable = directCapture
+    }
+
+    func importScreenRecording(from url: URL) async {
+        project = .fixture(
+            screenSource: RecordingAsset.fixture(
+                url: url,
+                photosStatus: .alreadyInPhotos
+            ),
+            origin: .photosImport
+        )
+        state = .idle
+    }
+
+    func reportImportFailure(_ error: Error) {
+        state = .failed(
+            CaptureFailure("Import failed", recoverySuggestion: error.localizedDescription)
+        )
     }
 
     func start() async {
-        guard state == .idle || isFailed else { return }
+        guard isDirectCaptureAvailable, state == .idle else { return }
         startCount += 1
-        state = .presentingPicker
+        recordingStartedAt = Date()
+        state = .recording
     }
 
     func stop() async {
         guard state == .recording else { return }
         stopCount += 1
-        finalize()
+        recordingStartedAt = nil
+        project = .fixture(origin: .directCapture)
+        state = .idle
     }
 
     func retrySave() async {
-        guard var latestRecording, latestRecording.photosStatus.canRetry else { return }
+        guard var project else { return }
         retryCount += 1
-        state = .saving
-        latestRecording.photosStatus = nextPhotosStatus
-        self.latestRecording = latestRecording
-        state = .idle
+        if var composite = project.composite {
+            composite.photosStatus = .saved
+            project.composite = composite
+        } else {
+            project.screenSource.photosStatus = .saved
+        }
+        self.project = project
+    }
+
+    func adoptComposedRecording(at url: URL, duration: TimeInterval) async throws {
+        guard var project else { throw CaptureFailure("Missing source") }
+        project.composite = RecordingAsset.fixture(url: url, duration: duration)
+        self.project = project
     }
 
     func cleanup() async {}
+}
 
-    func cancelPicker() {
-        guard state == .presentingPicker else { return }
-        state = .idle
-    }
-
-    func acceptPicker() {
-        guard state == .presentingPicker else { return }
-        recordingStartedAt = Date()
-        state = .recording
-    }
-
-    func systemStop() {
-        guard state == .recording else { return }
-        finalize()
-    }
-
-    func streamFailure() {
-        guard state == .recording else { return }
-        recordingStartedAt = nil
-        state = .failed(CaptureFailure("Stream stopped"))
-    }
-
-    private var isFailed: Bool {
-        if case .failed = state { true } else { false }
-    }
-
-    private func finalize() {
-        state = .finalizing
-        recordingStartedAt = nil
-        var summary = RecordingSummary.fixture()
-        summary.photosStatus = nextPhotosStatus
-        latestRecording = summary
-        state = .idle
+extension RecordingAsset {
+    fileprivate static func fixture(
+        url: URL = FileManager.default.temporaryDirectory.appendingPathComponent("\(UUID().uuidString).mp4"),
+        duration: TimeInterval = 15,
+        photosStatus: PhotosStatus = .saved
+    ) -> RecordingAsset {
+        RecordingAsset(
+            id: UUID(),
+            localURL: url,
+            duration: duration,
+            fileSize: 1_024,
+            photosStatus: photosStatus,
+            creationDate: Date()
+        )
     }
 }
 
-extension RecordingSummary {
-    fileprivate static func fixture() -> RecordingSummary {
-        RecordingSummary(
+extension RecordingProject {
+    fileprivate static func fixture(
+        screenSource: RecordingAsset = .fixture(),
+        origin: RecordingOrigin = .photosImport
+    ) -> RecordingProject {
+        RecordingProject(
             id: UUID(),
-            localURL: FileManager.default.temporaryDirectory
-                .appendingPathComponent("\(UUID().uuidString).mp4"),
-            duration: 15,
-            fileSize: 1_024,
-            photosStatus: .saved,
-            creationDate: Date()
+            screenSource: screenSource,
+            origin: origin,
+            composite: nil
         )
     }
 }

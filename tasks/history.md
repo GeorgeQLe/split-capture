@@ -1,5 +1,20 @@
 # Session history
 
+## 2026-08-16
+
+- Lowered the iPhone app deployment target to iOS 26 and made selected Photos
+  movie import the primary screen-source workflow without library read access.
+- Added persisted source/composite projects, legacy metadata migration, atomic
+  replacement, retained-source presenter retakes, and finished-video sharing.
+- Moved full-display ScreenCaptureKit into an iOS 27 SDK-gated backend with a
+  separate background-mode plist while stable Xcode 26 builds remain import-only.
+- Added presenter/compositor integration, expanded persistence and view-model
+  coverage to eleven passing tests, and split physical qualification into stable
+  iOS 26 and optional iOS 27 tracks.
+- Enabled Release product validation and Apple-generic versioning, added export
+  compliance metadata and App Store export options, then verified stable and
+  iOS 27 archives plus a distribution-signed IPA for version 1.0 build 2.
+
 ## 2026-08-14
 
 - Fixed the save-to-Photos crash by making the PhotoKit change closure

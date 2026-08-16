@@ -1,11 +1,21 @@
 # Current work
 
+- [ ] Complete the stable iOS 26 import-camera-compose qualification on a
+  physical iPhone and preserve the append-only evidence report.
 - [ ] Complete the physical iOS 27 ScreenCaptureKit qualification on the
   dedicated test iPhone and preserve the append-only evidence report.
 - [ ] Complete the stable-signed macOS Dual Capture qualification run and preserve its final report.
 
 # Completed this session
 
+- [x] Make Photos movie import the primary iOS 26 Step 1 workflow without
+  requesting full photo-library access.
+- [x] Persist retained screen sources and replaceable PiP composites, including
+  legacy latest-recording migration and presenter retakes from the source.
+- [x] Isolate direct ScreenCaptureKit recording behind the iOS 27 SDK and runtime
+  availability while keeping stable Xcode 26 archives free of iOS 27 symbols.
+- [x] Prepare and verify stable and iOS 27 Release archives plus a signed App
+  Store Connect IPA export for Split Capture 1.0 build 2.
 - [x] Prevent the Swift 6 actor-isolation crash when PhotoKit saves a completed
   recording and advance the iOS archive build number to 2.
 - [x] Add the native iOS 27 SwiftUI ScreenCaptureKit recorder, persistent latest

@@ -1,97 +1,104 @@
-# Split Capture iOS 27 qualification runbook
+# Split Capture iOS qualification runbook
 
-This qualification is physical-device-only. Never upgrade the currently paired
-iOS 26.5.2 phone for this work. Use a separate iPhone running the same iOS 27
-beta, release candidate, or final build as the selected Xcode 27 SDK.
+Qualify the stable iOS 26 import workflow and optional iOS 27 direct-capture
+workflow as separate tracks. Never upgrade the currently paired iOS 26 phone for
+iOS 27 testing; use a second device.
 
-## Prerequisites
+## Track A: stable Xcode 26 and iOS 26 import workflow
 
-1. Keep Xcode 26.6 at `/Applications/Xcode.app`.
-2. Install Xcode 27 beta 4 (`27A5228h`) as `/Applications/Xcode-beta.app`, then
-   install its iOS 27 platform support. Recheck Apple Releases before installing;
-   repeat this qualification on the release candidate or final SDK.
-3. Select the beta for this shell:
+Use stable Xcode 26 at `/Applications/Xcode.app`. No beta SDK or toolchain should
+be selected.
 
-   ```sh
-   export DEVELOPER_DIR=/Applications/Xcode-beta.app/Contents/Developer
-   xcodebuild -version
-   xcrun --sdk iphoneos --show-sdk-version
-   ```
+```sh
+export DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer
+xcodebuild -version
+xcrun --sdk iphoneos --show-sdk-version
+xcodebuild -project ios/SplitCapture.xcodeproj -scheme SplitCapture \
+  -destination 'platform=iOS,id=<ios-26-device-identifier>' build
+```
 
-4. On the separate iOS 27 iPhone, enable Developer Mode, pair it with Xcode,
-   trust the Mac, and confirm it appears in `xcrun devicectl list devices`.
-5. In the SplitCapture target, select the Apple Developer team that owns the
-   explicit `com.lexcorp.splitcapture` App ID. Do not change the bundle ID.
-6. Install `ffmpeg` so the harness can run `ffprobe`.
+Confirm the build uses deployment target 26.0, `SplitCapture/Info.plist`, and does
+not define `IOS27_DIRECT_CAPTURE`. Inspect the built plist and linked binary to
+confirm it contains neither `UIBackgroundModes` nor ScreenCaptureKit references.
+The Step 1 direct-recording action must not appear.
 
-## Start an append-only evidence run
+Run these scenarios:
 
-From the repository root:
+1. **Picker privacy and cancellation.** Open **Import Screen Recording**, cancel,
+   and confirm the app remains Ready with the previous project unchanged. Select
+   a movie and confirm the app never requests full photo-library read access.
+2. **Valid import and relaunch.** Import portrait and landscape screen recordings.
+   Confirm each is copied into app-owned storage, labeled **Imported from Photos**,
+   shareable after force-quit/relaunch, and not duplicated in Photos.
+3. **Invalid input.** Exercise an unsupported/corrupt movie and interrupted item
+   transfer. Confirm a recoverable import failure appears and the previous project
+   and media remain intact.
+4. **Atomic replacement.** Import a second valid source. Confirm replacement occurs
+   only after validation and persistence, then the former source and composite are
+   cleaned up.
+5. **Presenter permissions.** Start Step 2, grant front-camera and microphone access,
+   and confirm the mirrored preview overlays synchronized source playback.
+6. **Composition and retake.** Complete a take, then use **Retake Presenter**. Confirm
+   both takes use the retained original source; the second composite replaces only
+   the first composite. Only each finished PiP output is newly saved to Photos.
+7. **Cancellation and early stop.** Cancel before recording, then stop another take
+   before playback ends. Confirm no busy state sticks and the export ends at the
+   shorter presenter duration.
+8. **Migration.** Install over a build with valid `latest-recording.json` metadata.
+   Confirm it migrates into a screen-source-only project and remains shareable.
+9. **Photos denial and retry.** Deny add-only access while saving a final PiP,
+   confirm the local file remains shareable, then grant access and retry.
+
+## Track B: Xcode 27 SDK and physical iOS 27 direct capture
+
+Select Xcode 27 and confirm its iOS 27 platform support is installed:
+
+```sh
+export DEVELOPER_DIR=/Applications/Xcode-beta.app/Contents/Developer
+xcodebuild -version
+xcrun --sdk iphoneos --show-sdk-version
+```
+
+Build the same iOS 26 deployment target for both an iOS 26 and an iOS 27 device.
+Confirm `IOS27_DIRECT_CAPTURE` is defined and `Info-iOS27.plist` supplies the
+`audio` and `screen-capture` background modes. On iOS 26, direct capture must remain
+hidden at runtime. On a physical iOS 27 phone it must appear below import.
+
+On iOS 27, run:
+
+1. picker cancellation;
+2. microphone-off capture with app switching and rotation;
+3. microphone-on capture with non-DRM system audio and a unique spoken phrase;
+4. app stop and Apple system-control stop;
+5. background/foreground, Siri interruption, and graceful recovery;
+6. screen-only Photos denial and retry;
+7. sequential capture replacement and relaunch;
+8. presenter composition and retake from the retained direct-capture source.
+
+## Evidence and media verification
+
+Start an append-only evidence run from the repository root:
 
 ```sh
 scripts/ios-qualification.sh init
 scripts/ios-qualification.sh build 'platform=iOS,id=<device-identifier>'
 ```
 
-The default evidence directory is
-`/Users/Shared/split-capture-ios-qualification-<short-sha>-r1`. The harness only
-appends logs and uniquely named artifacts. It refuses to overwrite a report.
-Use `SPLIT_CAPTURE_QUALIFICATION_REVISION=r2` for a clean rerun.
-
-Save screenshots into the run’s `screenshots` directory. Export every MP4 to
-the Mac, then import and inspect it:
+The default directory is
+`/Users/Shared/split-capture-ios-qualification-<short-sha>-r1`. Use
+`SPLIT_CAPTURE_QUALIFICATION_REVISION=r2` for a clean rerun. Save screenshots in
+its `screenshots` directory, export each movie to the Mac, and inspect it:
 
 ```sh
-scripts/ios-qualification.sh import mic-off /path/to/export.mp4
-scripts/ios-qualification.sh verify /Users/Shared/.../exports/mic-off-....mp4
-scripts/ios-qualification.sh result mic-off PASS '15.1 s; orientation and audio verified'
+scripts/ios-qualification.sh import imported-pip /path/to/export.mp4
+scripts/ios-qualification.sh verify /Users/Shared/.../exports/imported-pip-....mp4
+scripts/ios-qualification.sh result imported-pip PASS 'duration, orientation, PiP, and audio verified'
 ```
 
-Record failures and blockers too. Never replace evidence from an earlier
-attempt.
+Every export must have a readable nonempty container, one video stream, correct
+orientation, expected duration, and expected audio. Finished presenter exports
+must additionally have a synchronized lower-right front-camera layer plus source
+and presenter audio when both inputs contain audio.
 
-## Manual scenarios
-
-Run each scenario from a clean install where the scenario says first-run.
-
-1. **First run and permissions.** Verify the initial screen is usable. Start a
-   capture with narration enabled and allow microphone access. Finish it and
-   allow add-only Photos access. Confirm the app never requests read access to
-   the library.
-2. **Picker cancellation.** Tap Record Demo, cancel Apple’s picker, and confirm
-   the app returns to Ready with no MP4 and no latest-recording replacement.
-3. **Microphone off.** Record for 15 seconds with the picker microphone toggle
-   off. Switch apps, rotate portrait → landscape → portrait, return, and stop
-   in the app.
-4. **Microphone on.** Record for 15 seconds with narration and audible,
-   non-DRM system audio. Speak a unique phrase. Stop in the app.
-5. **System stop.** Start another recording, switch apps, then stop from
-   Apple’s system capture control. Return to Split Capture and verify it
-   finalized.
-6. **Lifecycle and interruption.** Background and foreground during capture.
-   Trigger Siri once. Continued capture or graceful finalization is acceptable;
-   a stuck Starting, Recording, or Finishing state is not.
-7. **Photos denial and retry.** Deny Photos add access. Confirm the local MP4
-   remains shareable and Retry Save appears. Grant access in Settings, return,
-   retry, and confirm the saved asset.
-8. **Replacement and relaunch.** Make two sequential recordings. Confirm the
-   second replaces the first only after finalization. Force-quit, relaunch, and
-   share the restored latest recording.
-
-For each exported MP4, require:
-
-- a readable, nonempty container;
-- duration near the measured capture interval;
-- correct rotation/orientation throughout;
-- exactly one video stream;
-- expected audible system content;
-- microphone narration present only when enabled.
-
-Finish with:
-
-```sh
-scripts/ios-qualification.sh report
-```
-
-Review the generated `test-reports/ios-screen-capture-qualification-YYYY-MM-DD.md`
-and all referenced evidence before calling the device qualification complete.
+Finish with `scripts/ios-qualification.sh report` and review the generated report
+and all referenced evidence before calling either track qualified.

@@ -30,11 +30,18 @@
 	<string>Split Capture includes narration in screen recordings and presenter camera takes when you enable the microphone.</string>
 	<key>NSPhotoLibraryAddUsageDescription</key>
 	<string>Split Capture saves finished demo recordings to your Photos library.</string>
+	<key>NSScreenCaptureUsageDescription</key>
+	<string>Split Capture records the full display and system audio after you confirm Apple’s screen-sharing picker.</string>
 	<key>UIApplicationSceneManifest</key>
 	<dict>
 		<key>UIApplicationSupportsMultipleScenes</key>
 		<false/>
 	</dict>
+	<key>UIBackgroundModes</key>
+	<array>
+		<string>audio</string>
+		<string>screen-capture</string>
+	</array>
 	<key>UILaunchScreen</key>
 	<dict/>
 	<key>UIRequiredDeviceCapabilities</key>
